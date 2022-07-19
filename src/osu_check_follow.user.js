@@ -2,8 +2,8 @@
 // @name:ja         フォローされているか確認
 // @name            Check that you are being followed
 // @namespace       https://osu.ppy.sh/users/22136262
-// @downloadURL     https://osu.yuzupon1133.repl.co/followcheck.user.js
-// @updateURL       https://osu.yuzupon1133.repl.co/followcheck.user.js
+// @downloadURL     https://raw.githubusercontent.com/yuzupon1133/osu-userscript-tools/main/src/osu_check_follow.user.js
+// @updateURL       https://raw.githubusercontent.com/yuzupon1133/osu-userscript-tools/main/src/osu_check_follow.user.js
 // @version         1.2
 // @description:ja  相手にフォローされているか確認することができます
 // @description     Check if the other is follows you
@@ -13,7 +13,10 @@
 // @grant           none
 // ==/UserScript==
 
-// !!!!!!!!! Please help me translate !!!!!!!!!!
+// このユーザースクリプトの説明
+// https://boubiroku.yuzupon1133.repl.co/article/?id=4
+// GitHub
+// https://github.com/yuzupon1133/osu-userscript-tools/blob/main/src/osu_check_follow.js
 
 // ========= Your Country Code Here ========== //
              var country_code = "JA";

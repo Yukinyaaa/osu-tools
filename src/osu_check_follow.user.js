@@ -16,7 +16,7 @@
 // このユーザースクリプトの説明
 // https://boubiroku.yuzupon1133.repl.co/article/?id=4
 // GitHub
-// https://github.com/yuzupon1133/osu-userscript-tools/blob/main/src/osu_check_follow.js
+// https://github.com/yuzupon1133/osu-userscript-tools/blob/main/src/osu_check_follow.user.js
 
 // ========= Your Country Code Here ========== //
              var country_code = "JA";

@@ -24,6 +24,6 @@
 
 プロフィール（統計など）を15秒ごとに自動で更新します。
 
-# ユーザースクリプトの追加要望
+# ユーザースクリプトの追加要望・バグ報告・提案
 
 [Issues](https://github.com/yuzupon1133/osu-userscript-tools/issues)に建ててください。

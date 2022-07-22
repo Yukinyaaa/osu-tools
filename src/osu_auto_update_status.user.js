@@ -66,18 +66,40 @@ const DOMDeleteAppend = (DOM, content) => {
 const json_reflect = (json) => {
   try {
     var jtemp = getByClassName("value-display__value");
-    jtemp[0].firstChild.innerHTML = "#" + num_add_comma(set_temp(json.user.statistics).global_rank);
+    jtemp[0].firstChild.innerHTML = "#" + num_add_comma(set_temp(json.user.statistics).global_rank); // !!!
     jtemp[1].firstChild.innerHTML = "#" + num_add_comma(get_temp().country_rank);
     jtemp[2].innerHTML = json.user.user_achievements.length;
     jtemp[3].firstChild.innerHTML = num_add_comma(round(get_temp().pp));
     jtemp[4].firstChild.innerHTML = sec_to_dhm(get_temp().play_time);
-    jtemp[4].setAttribute("title", (get_temp().play_time/3600|0) + "時間");
+    jtemp[4].setAttribute("data-orig-title", (get_temp().play_time/3600|0) + "時間");
+    jtemp[5].innerHTML = num_add_comma(json.user.kudosu.total);
+    
+    jtemp = getByClassName("profile-rank-count")[0].children;
+    jtemp[0].innerHTML = jtemp[0].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(set_temp(get_temp().grade_counts).ssh)); // !!!
+    jtemp[1].innerHTML = jtemp[1].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(get_temp().ss));
+    jtemp[2].innerHTML = jtemp[2].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(get_temp().sh));
+    jtemp[3].innerHTML = jtemp[3].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(get_temp().s));
+    jtemp[4].innerHTML = jtemp[4].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(get_temp().a));
+    
+    jtemp = getByClassName("profile-stats__value");
+    jtemp[0].innerHTML = num_add_comma(get_temp(2).ranked_score);
+    jtemp[1].innerHTML = round(Number(get_temp(2).hit_accuracy)*100)/100 + "%";
+    jtemp[2].innerHTML = num_add_comma(get_temp(2).play_count);
+    jtemp[3].innerHTML = num_add_comma(get_temp(2).total_score);
+    jtemp[4].innerHTML = num_add_comma(get_temp(2).total_hits);
+    jtemp[5].innerHTML = num_add_comma(get_temp(2).maximum_combo);
+    jtemp[6].innerHTML = num_add_comma(get_temp(2).replays_watched_by_others);
+    
+    jtemp = getByClassName("user-action-button__counter");
+    jtemp[0].innerHTML = num_add_comma(json.user.follower_count);
+    jtemp[1].innerHTML = num_add_comma(json.user.mapping_follower_count);
+    
+    getByClassName("bar__fill")[0].setAttribute("style", "width: " + get_temp(2).level.progress + "%");
+    getByClassName("bar__text")[0].innerHTML = get_temp(2).level.progress + "%";
+    getByClassName("user-level")[0].setAttribute("data-orig-title", "レベル " + get_temp(2).level.current);
+    getByClassName("user-level")[0].innerHTML = get_temp(2).level.current + "%";
   } catch(e) {
-    is_waiting_stop = true;
-    DOMDeleteAppend(getById("user-status-update-icon"), error_icon);
-    getById("user-status-update-time").innerHTML = "エラー！";
-    getById("user-status-detail").setAttribute("title", "コンソールを確認してください");
-    throw e;
+    show_error(e);
   }
 }
 
@@ -86,13 +108,13 @@ const json_reflect = (json) => {
 const num_add_comma = (num) => {
   return Number(num).toLocaleString()
 }
-var temp_temp;
+var temp_temp = [];
 const set_temp = (data) => {
-  temp_temp = data;
+  temp_temp.push(data);
   return data;
 }
-const get_temp = () => {
-  return temp_temp;
+const get_temp = (index = 1) => {
+  return temp_temp.at(-index);
 }
 const sec_to_dhm = (time) => {
   return `${time/3600/24|0}d ${(time/3600|0)-(time/3600/24|0)*24}h ${time%3600/60|0}m`;
@@ -105,6 +127,14 @@ const ceil = (num) => {
 }
 const floor = (num) => {
   return Math.floor(Number(num));
+}
+const show_error = (e) => {
+  is_waiting_stop = true;
+  is_error = true;
+  DOMDeleteAppend(getById("user-status-update-icon"), error_icon);
+  getById("user-status-update-time").innerHTML = "エラー！";
+  getById("user-status-detail").setAttribute("title", "コンソールを確認してください");
+  throw e;
 }
 
 const waiting_icon = strtodom(
@@ -145,20 +175,23 @@ document.getElementsByClassName("page-mode--profile-page-extra")[0].append(
 
 var is_waiting_stop = false;
 var is_fetching = false;
+var is_error = false;
 
 getById("user-status-detail").addEventListener("click", () => {
-  
-  if(!is_waiting_stop) {
-    DOMDeleteAppend(getById("user-status-update-icon"), pause_icon);
-    getById("user-status-update-time").innerHTML = "一時停止中";
-    getById("user-status-detail").setAttribute("title", "クリックして実行");
-  } else {
-    DOMDeleteAppend(getById("user-status-update-icon"), waiting_icon);
-    update_time = 15;
-    getById("user-status-update-time").innerHTML = "実行中";
-    getById("user-status-detail").setAttribute("title", "クリックして一時停止");
+  if(!is_error) {
+    if(!is_waiting_stop) {
+      DOMDeleteAppend(getById("user-status-update-icon"), pause_icon);
+      getById("user-status-update-time").innerHTML = "一時停止中";
+      getById("user-status-detail").setAttribute("title", "クリックして再開");
+    } else {
+      DOMDeleteAppend(getById("user-status-update-icon"), waiting_icon);
+      update_time = 15;
+      getById("user-status-update-time").innerHTML = "待機中";
+      getById("user-status-detail").setAttribute("title", "クリックして一時停止");
+    }
+    is_waiting_stop = !is_waiting_stop;
   }
-  is_waiting_stop = !is_waiting_stop;
+  
 });
 
 var update_time = 15;
@@ -184,6 +217,9 @@ const time_status_update = () => {
         getById("user-status-update-time").innerHTML = update_time + "秒後に更新";
         is_fetching = false;
       })
+      .catch(e => {
+        show_error(e);
+      });
     } else {
       DOMDeleteAppend(getById("user-status-update-icon"), waiting_icon);
       getById("user-status-update-time").innerHTML = update_time + "秒後に更新";

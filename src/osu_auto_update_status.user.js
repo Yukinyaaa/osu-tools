@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name            プロフィール自動更新
 // @namespace       https://osu.ppy.sh/users/22136262
-// @downloadURL     https://raw.githubusercontent.com/yuzupon1133/osu-userscript-tools/main/src/osu_auto_update_status.user.js
-// @updateURL       https://raw.githubusercontent.com/yuzupon1133/osu-userscript-tools/main/src/osu_auto_update_status.user.js
+// @downloadURL     https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/src/osu_auto_update_status.user.js
+// @updateURL       https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/src/osu_auto_update_status.user.js
 // @version         0.0
 // @description     15秒ごとに自動でプロフィールが更新されます
 // @author          yuzupon1133
@@ -14,7 +14,7 @@
 // このユーザースクリプトの説明
 // 
 // GitHub
-// https://github.com/yuzupon1133/osu-userscript-tools/blob/main/src/osu_auto_update_status.user.js
+// https://github.com/yuzupon1133/osu-tools/blob/main/src/osu_auto_update_status.user.js
 
 (() => {
 
@@ -97,7 +97,7 @@ const json_reflect = (json) => {
     getByClassName("bar__fill")[0].setAttribute("style", "width: " + get_temp(2).level.progress + "%");
     getByClassName("bar__text")[0].innerHTML = get_temp(2).level.progress + "%";
     getByClassName("user-level")[0].setAttribute("data-orig-title", "レベル " + get_temp(2).level.current);
-    getByClassName("user-level")[0].innerHTML = get_temp(2).level.current + "%";
+    getByClassName("user-level")[0].innerHTML = get_temp(2).level.current;
   } catch(e) {
     show_error(e);
   }

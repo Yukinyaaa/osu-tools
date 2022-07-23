@@ -2,8 +2,8 @@
 // @name         ユーザーを検索
 // @namespace    https://osu.ppy.sh/users/22136262
 // @version      0.1
-// @downloadURL  https://raw.githubusercontent.com/yuzupon1133/osu-userscript-tools/main/src/osu_user_search.user.js
-// @updateURL    https://raw.githubusercontent.com/yuzupon1133/osu-userscript-tools/main/src/osu_user_search.user.js
+// @downloadURL  https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/src/osu_user_search.user.js
+// @updateURL    https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/src/osu_user_search.user.js
 // @description  フレンド欄にユーザーを検索機能を追加しました
 // @author       yuzupon1133
 // @match        https://osu.ppy.sh/*
@@ -14,7 +14,7 @@
 // このユーザースクリプトの説明
 // https://boubiroku.yuzupon1133.repl.co/article/?id=5
 // GitHub
-// https://github.com/yuzupon1133/osu-userscript-tools/blob/main/src/osu_user_search.user.js
+// https://github.com/yuzupon1133/osu-tools/blob/main/src/osu_user_search.user.js
 
 (function() {
     const create = (...arg) => { // tagName, (attributeName, attributeValue)..., innerHTML

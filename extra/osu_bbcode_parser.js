@@ -7,6 +7,9 @@ const bbcode_parser = (raw) => {
       return "";
     }
     var tag_match = new RegExp("^\\[(" + tags_list + ")(?:=(.*?))?\\](.*)\\[\\/(" + tags_list + ")\\]$");
+    if(tag.match(/^\[\*\].+$/) {
+      return tag.split(/(?:hfjfjfjfjgjgngngg\n
+    }
     var tag_syntax_check = tag.match(tag_match);
     if(!tag_syntax_check || tag_syntax_check[1] != tag_syntax_check[4]) {
       return tag;
@@ -110,49 +113,38 @@ const bbcode_parser = (raw) => {
         } else {
           return tag.replace(tag_match, "<ol class=\"unordered\">" + text + "</ol>";
         }
-      case "*": 
-        if(!arg) {
-          // return "<li>" + text.split(/(?:\[*\]|<br>)/)[0] + "</li>";
-          return true;
-        } else {
-          return false;
-        }
       case "img": 
         if(!arg && text.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/)) {
-          // return "<span class=\"proportional-container js-gallery\"><span class=\"proportional-container__height\" style=\"padding-bottom:55.952380952381%\"><img class=\"proportional-container__content\" src=\"" + text + "\" alt=\"\"></span></span>";
-          return true;
+          return tag.replace(tag_match, "<span class=\"proportional-container js-gallery\"><span class=\"proportional-container__height\" style=\"padding-bottom:55.952380952381%\"><img class=\"proportional-container__content\" src=\"$3\" alt=\"\"></span></span>");
         } else {
-          return false;
+          return tag;
         }
       case "youtube": 
         if(!arg && text.match(/^[\w-]{11}$/)) {
-          // return "<div class=\"bbcode__video\"><iframe src=\"https://www.youtube.com/embed/" + text + "?rel=0\" frameborder=\"0\"></iframe></div>";
-          return true;
+          return tag.replace(tag_match, "<div class=\"bbcode__video\"><iframe src=\"https://www.youtube.com/embed/$3?rel=0\" frameborder=\"0\"></iframe></div>");
         } else {
-          return false;
+          return tag;
         }
       case "audio": 
         if(!arg && text.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/)) {
-          // return "<div class=\"audio-player js-audio--player\" data-audio-url=\"" + text + "\" data-audio-state=\"paused\" data-audio-autoplay=\"1\" data-audio-has-duration=\"1\" data-audio-time-format=\"minute_minimal\" data-audio-over50=\"0\" style=\"--duration:&quot;0:00&quot;; --current-time:&quot;0:00&quot;; --progress:0;\"><button type=\"button\" class=\"audio-player__button audio-player__button--play js-audio--play\"><span class=\"fa-fw play-button\"></span></button><div class=\"audio-player__bar audio-player__bar--progress js-audio--seek\"><div class=\"audio-player__bar-current\"></div></div><div class=\"audio-player__timestamps\"><div class=\"audio-player__timestamp audio-player__timestamp--current\"></div><div class=\"audio-player__timestamp-separator\">/</div><div class=\"audio-player__timestamp audio-player__timestamp--total\"></div></div></div>";
-          return true;
+          return tag.replace(tag_match, "<div class=\"audio-player js-audio--player\" data-audio-url=\"$3\" data-audio-state=\"paused\" data-audio-autoplay=\"1\" data-audio-has-duration=\"1\" data-audio-time-format=\"minute_minimal\" data-audio-over50=\"0\" style=\"--duration:&quot;0:00&quot;; --current-time:&quot;0:00&quot;; --progress:0;\"><button type=\"button\" class=\"audio-player__button audio-player__button--play js-audio--play\"><span class=\"fa-fw play-button\"></span></button><div class=\"audio-player__bar audio-player__bar--progress js-audio--seek\"><div class=\"audio-player__bar-current\"></div></div><div class=\"audio-player__timestamps\"><div class=\"audio-player__timestamp audio-player__timestamp--current\"></div><div class=\"audio-player__timestamp-separator\">/</div><div class=\"audio-player__timestamp audio-player__timestamp--total\"></div></div></div>");
         } else {
-          return false;
+          return tag;
         }
       case "heading": 
         if(!arg) {
-          // return "<h2>" + text + "</h2>";
-          return true;
+          return tag.replace(tag_match, "<h2>$3</h2>");
         } else {
-          return false;
+          return tag;
         }
       case "notice": 
         if(!arg) {
-          // return "<div class=\"well\">" + text + "</div>";
-          return true;
+          return tag.replace(tag_match, "<div class=\"well\">$3</div>");
         } else {
-          return false;
+          return tag;
         }
-    }  
+    }
+    return tag;
   }
   const part_of_list = (list, start, end) => {
     var part_list = [];

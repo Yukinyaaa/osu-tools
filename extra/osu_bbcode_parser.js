@@ -1,17 +1,24 @@
 const bbcode_parser = (raw) => {
-  raw.replace(/\n/g, "<br>");
+  raw = raw.replace(/\n/g, "<br>").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   const html_colors = "black|silver|gray|white|maroon|red|purple|fuchsia|green|lime|olive|yellow|navy|blue|teal|aqua|orange|aliceblue|antiquewhite|aquamarine|azure|beige|bisque|blanchedalmond|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|gainsboro|ghostwhite|gold|goldenrod|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|limegreen|linen|magenta|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|oldlace|olivedrab|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|thistle|tomato|turquoise|violet|wheat|whitesmoke|yellowgreen|rebeccapurple";
-  const tag_arg_check = (tagname, arg, text) => {
-    if(!text) {
-      return false;
+  const tags_list = "b|i|u|s|strike|color|size|spoiler|box|spoilerbox|quote|code|centre|url|profile|list|\\*|img|youtube|audio|heading|notice";
+  const tag_check = (tag) => {
+    if(!tag) {
+      return "";
     }
-    switch (tagname) {
+    var tag_match = new RegExp("^\\[(" + tags_list + ")(?:=(.*?))?\\](.*)\\[\\/(" + tags_list + ")\\]$");
+    var tag_syntax_check = tag.match(tag_match);
+    if(!tag_syntax_check || tag_syntax_check[1] != tag_syntax_check[4]) {
+      return tag;
+    }
+    var arg = tag_syntax_check[2];
+    var text = tag_syntax_check[3]
+    switch(tag_syntax_check[1]) {
       case "b": 
         if(!arg) {
-          // return "<strong>" + text + "</strong>";
-          return true;
+          return tag.replace(tag_match, "<strong>$3</strong>");
         } else {
-          return false;
+          return tag;
         }
       case "i": 
         if(!arg) {
@@ -164,7 +171,6 @@ const bbcode_parser = (raw) => {
     }
     return part_list;
   }
-  const tags_list = "b|i|u|s|strike|color|size|spoiler|box|spoilerbox|quote|code|centre|url|profile|list|\\*|img|youtube|audio|heading|notice";
   const values = raw.split(new RegExp("(\\[\\/?(?:" + tags_list + ")(?:=.*?)?\\])"));
   const tag_regexp = new RegExp("^\\[(\\/)?(" + tags_list + ")(?:=(.*?))?\\]$");
   var counter = 0;
@@ -175,7 +181,7 @@ const bbcode_parser = (raw) => {
       var tag_end = -1;
       if(tag_i_match[1] == undefined) {
         if(tag_i_match[2] != "*") {
-          var tag_check = 0;
+          var tag_se_check = 0;
           for(let j = i + 1; j < values.length; j++) {
             if(j == values.length - 1) {
               break;
@@ -183,21 +189,21 @@ const bbcode_parser = (raw) => {
             var tag_j_match = values[j].match(tag_regexp);
             if(tag_j_match && tag_i_match[2] == tag_j_match[2]) {
               if(tag_j_match[1] == undefined) {
-                tag_check++;
+                tag_se_check++;
               } else {
-                if(tag_check == 0) {
+                if(tag_se_check == 0) {
                   tag_end = j;
                   break;
                 }
-                tag_check--;
+                tag_se_check--;
               }
             }
           }
           if(tag_end != -1) {
-            console.log(tag_arg_check(tag_i_match[2], tag_i_match[3], part_of_list(values, tag_start, tag_end).join("")));
+            console.log(tag_check(part_of_list(values, tag_start, tag_end).join("")));
           }
         } else {
-          console.log(tag_arg_check("*", undefined, part_of_list(values, tag_start, values.length).join("")));
+          console.log(tag_check(part_of_list(values, tag_start, values.length).join("")));
         }
         counter++;
       }

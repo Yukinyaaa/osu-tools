@@ -60,64 +60,55 @@ const bbcode_parser = (raw) => {
       case "spoilerbox": 
         if(!arg) {
           tag = tag.replace(tag_match, "[box=SPOILER]$3[/box]");
-          arg = "SPOILER";
+          arg = true;
         } else {
           return tag;
         }
       case "box": 
         if(arg) {
-          return tag.replace(tag_match, "<div class=\"js-spoilerbox bbcode-spoilerbox\"><button class=\"js-spoilerbox__link bbcode-spoilerbox__link\" type=\"button\"><span class=\"bbcode-spoilerbox__link-icon\"></span>$2</button><div class=\"bbcode-spoilerbox__body\">" + text + "</div></div>");
+          return tag.replace(tag_match, "<div class=\"js-spoilerbox bbcode-spoilerbox\"><button class=\"js-spoilerbox__link bbcode-spoilerbox__link\" type=\"button\"><span class=\"bbcode-spoilerbox__link-icon\"></span>$2</button><div class=\"bbcode-spoilerbox__body\">$3</div></div>");
         } else {
           return tag;
         }
       case "quote": 
         if(arg && arg.match(/^".+"$/)) {
-          // return "<blockquote><h4>" + arg + " wrote:</h4>" + text + "</blockquote>";
-          return true;
+          return tag.replace(tag_match, "<blockquote><h4>$2 wrote:</h4>$3</blockquote>");
         } else if(arg) {
-          return false;
+          return tag;
         } else {
-          // return "<blockquote>" + text + "</blockquote>";
-          return true;
+          return tag.replace(tag_match, "<blockquote>$3</blockquote>");
         }
       case "code": 
         if(!arg) {
-          // return "<pre>" + text + "</pre>";
-          return true;
+          return tag.replace(tag_match, "<pre>$3</pre>");
         } else {
-          return false;
+          return tag;
         }
       case "centre": 
         if(!arg) {
-          // return "<center>" + text + "</center>";
-          return true;
+          return tag.replace(tag_match, "<center>$3</center>");
         } else {
-          return false;
+          return tag;
         }
       case "url": 
-        if(arg && arg.match(/^(?:https?|ftp):\/\/.+?\..+?.*$/) && text) {
-          // return "<a rel=\"nofollow\" href=\"" + arg.replaceAll("\"", "\\\"") + "\">" + text + "</a>";
-          return true;
-        } else if(!arg && text.match(/^(?:https?|ftp):\/\/\w+?\.\w+?.*$/)) {
-          // return "<a rel=\"nofollow\" href=\"" + text.replaceAll("\"", "\\\"") + "\">" + text + "</a>";
-          return true;
+        if(arg && arg.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/) && text) {
+          return tag.replace(tag_match, "<a rel=\"nofollow\" href=\"$2\">$3</a>");
+        } else if(!arg && text.match(/^(?:https?|ftps?):\/\/\w+?\.\w+?.*$/)) {
+          return tag.replace(tag_match, "<a rel=\"nofollow\" href=\"$3\">$3</a>");
         } else {
-          return false;
+          return tag;
         }
       case "profile": 
         if((arg && arg.match(/^\d+$/)) || text.match(/^[\w- \[\]]+$/)) {
-          // return "<a class=\"user-name js-usercard\" href=\"https://osu.ppy.sh/users/" + (arg ? arg : text) + "\" data-hasqtip=\"107\" aria-describedby=\"qtip-107\">" + text + "</a>";
-          return true;
+          return tag.replace(tag_match, "<a class=\"user-name js-usercard\" href=\"https://osu.ppy.sh/users/$3\" data-hasqtip=\"107\" aria-describedby=\"qtip-107\">$3</a>");
         } else {
-          return false;
+          return tag;
         }
       case "list": 
         if(arg) {
-          // return "<ol>" + text + "</ol>";
-          return true;
+          return tag.replace(tag_match, "<ol>$3</ol>");
         } else {
-          // return "<ol class=\"unordered\">" + text + "</ol>";
-          return true;
+          return tag.replace(tag_match, "<ol class=\"unordered\">" + text + "</ol>";
         }
       case "*": 
         if(!arg) {
@@ -127,7 +118,7 @@ const bbcode_parser = (raw) => {
           return false;
         }
       case "img": 
-        if(!arg && text.match(/^(?:https?|ftp):\/\/.+?\..+?.*$/)) {
+        if(!arg && text.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/)) {
           // return "<span class=\"proportional-container js-gallery\"><span class=\"proportional-container__height\" style=\"padding-bottom:55.952380952381%\"><img class=\"proportional-container__content\" src=\"" + text + "\" alt=\"\"></span></span>";
           return true;
         } else {
@@ -141,7 +132,7 @@ const bbcode_parser = (raw) => {
           return false;
         }
       case "audio": 
-        if(!arg && text.match(/^(?:https?|ftp):\/\/.+?\..+?.*$/)) {
+        if(!arg && text.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/)) {
           // return "<div class=\"audio-player js-audio--player\" data-audio-url=\"" + text + "\" data-audio-state=\"paused\" data-audio-autoplay=\"1\" data-audio-has-duration=\"1\" data-audio-time-format=\"minute_minimal\" data-audio-over50=\"0\" style=\"--duration:&quot;0:00&quot;; --current-time:&quot;0:00&quot;; --progress:0;\"><button type=\"button\" class=\"audio-player__button audio-player__button--play js-audio--play\"><span class=\"fa-fw play-button\"></span></button><div class=\"audio-player__bar audio-player__bar--progress js-audio--seek\"><div class=\"audio-player__bar-current\"></div></div><div class=\"audio-player__timestamps\"><div class=\"audio-player__timestamp audio-player__timestamp--current\"></div><div class=\"audio-player__timestamp-separator\">/</div><div class=\"audio-player__timestamp audio-player__timestamp--total\"></div></div></div>";
           return true;
         } else {

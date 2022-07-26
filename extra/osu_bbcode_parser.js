@@ -22,54 +22,53 @@ const bbcode_parser = (raw) => {
         }
       case "i": 
         if(!arg) {
-          // return "<em>" + text + "</em>";
-          return true;
+          return tag.replace(tag_match, "<em>$3</em>");
         } else {
-          return false;
+          return tag;
         }
       case "u": 
         if(!arg) {
-          // return "<u>" + text + "</u>";
-          return true;
+          return tag.replace(tag_match, "<u>$3</u>");
         } else {
-          return false;
+          return tag;
         }
       case "s": 
       case "strike": 
         if(!arg) {
-          // return "<del>" + text + "</del>";
-          return true;
+          return tag.replace(tag_match, "<del>$3</del>");
         } else {
-          return false;
+          return tag;
         }
       case "color": 
         if(arg && arg.match(new RegExp("^(?:(?:" + html_colors + ")|#[a-fA-F0-9]{6})$"))) {
-          // return "<span style=\"color:" + arg + "\">" + text + "</span>";
-          return true;
+          return tag.replace(tag_match, "<span style=\"color:$2\">$3</span>");
         } else {
-          return false;
+          return tag;
         }
       case "size": 
         if(["50", "85", "100", "150"].indexOf(arg) != -1) {
-          // return "<span class=\"size-" + arg + "\">" + text + "</span>";
-          return true;
+          return tag.replace(tag_match, "<span class=\"size-$2\">$3</span>");
         } else {
-          return false;
+          return tag;
         }
       case "spoiler": 
         if(!arg) {
-          // return "<span class=\"spoiler\">" + text + "</span>";
-          return true;
+          return tag.replace(tag_match, "<span class=\"spoiler\">$3</span>");
         } else {
-          return false;
+          return tag;
         }
       case "spoilerbox": 
+        if(!arg) {
+          tag = tag.replace(tag_match, "[box=SPOILER]$3[/box]");
+          arg = "SPOILER";
+        } else {
+          return tag;
+        }
       case "box": 
         if(arg) {
-          // return "<div class=\"js-spoilerbox bbcode-spoilerbox\"><button class=\"js-spoilerbox__link bbcode-spoilerbox__link\" type=\"button\"><span class=\"bbcode-spoilerbox__link-icon\"></span>" + arg + "</button><div class=\"bbcode-spoilerbox__body\">" + text + "</div></div>";
-          return true;
+          return tag.replace(tag_match, "<div class=\"js-spoilerbox bbcode-spoilerbox\"><button class=\"js-spoilerbox__link bbcode-spoilerbox__link\" type=\"button\"><span class=\"bbcode-spoilerbox__link-icon\"></span>$2</button><div class=\"bbcode-spoilerbox__body\">" + text + "</div></div>");
         } else {
-          return false;
+          return tag;
         }
       case "quote": 
         if(arg && arg.match(/^".+"$/)) {

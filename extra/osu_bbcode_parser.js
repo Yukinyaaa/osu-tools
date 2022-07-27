@@ -2,7 +2,7 @@ const bbcode_parser = (raw) => {
   if(!raw) {
     return "";
   }
-  raw = raw.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replace(/\n/g, "<br>");
+  raw = raw.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\n", "<br>");
   const html_colors = "black|silver|gray|white|maroon|red|purple|fuchsia|green|lime|olive|yellow|navy|blue|teal|aqua|orange|aliceblue|antiquewhite|aquamarine|azure|beige|bisque|blanchedalmond|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|gainsboro|ghostwhite|gold|goldenrod|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|limegreen|linen|magenta|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|oldlace|olivedrab|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|thistle|tomato|turquoise|violet|wheat|whitesmoke|yellowgreen|rebeccapurple";
   const tags_list = "b|i|u|s|strike|color|size|spoiler|box|spoilerbox|quote|code|centre|url|profile|list|\\*|img|youtube|audio|heading|notice";
   const tag_arg_check = (start, end) => {
@@ -12,12 +12,12 @@ const bbcode_parser = (raw) => {
     }
     let list_len = end - start + 1;
     let tagname, arg = null, text = null;
-    let tag_ast_match = tag.match(/^\[\*\](.*)/);
+    let tag_ast_match = tag.match(/^\[\*\].*/);
     let tag_tag_match = tag.match(new RegExp("^\\[(" + tags_list + ")(?:=(.*?))?\\](.*)\\[\\/(" + tags_list + ")\\]$"));
     if(tag_ast_match) {
       values[start] = "<li>";
-      for(let k = start; k < values.length; k++) {
-        if(values[k].match(/(?:\[*\]|\[\/list\]|<br>)/)) {
+      for(let k = start + 1; k < values.length; k++) {
+        if(values[k].match(/(?:\[\*\]|\[\/list\]|<br>)/)) {
           values.splice(k, 0, "</li>");
           return;
         }
@@ -216,3 +216,4 @@ const bbcode_parser = (raw) => {
   }
   return values.join("");
 }
+console.log(bbcode_parser("[*][color=white]color[/color]"));

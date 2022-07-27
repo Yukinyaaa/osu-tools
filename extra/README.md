@@ -5,8 +5,9 @@
 
 ※がついている項目は製作途中です。
 
-### [BBCode parser](https://github.com/yuzupon1133/osu-tools/blob/main/extra/osu_bbcode_parser.js) ※
+### [BBCode parser](https://github.com/yuzupon1133/osu-tools/blob/main/extra/osu_bbcode_parser.js)
 BBCodeのパーサーです。
+※認知のバグあり
 
 # バグ報告・提案
 

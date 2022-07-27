@@ -1,16 +1,16 @@
 const bbcode_parser = (raw) => {
-  raw = raw.replace(/\n/g, "<br>").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  raw = raw.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   const html_colors = "black|silver|gray|white|maroon|red|purple|fuchsia|green|lime|olive|yellow|navy|blue|teal|aqua|orange|aliceblue|antiquewhite|aquamarine|azure|beige|bisque|blanchedalmond|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|gainsboro|ghostwhite|gold|goldenrod|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|limegreen|linen|magenta|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|oldlace|olivedrab|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|thistle|tomato|turquoise|violet|wheat|whitesmoke|yellowgreen|rebeccapurple";
   const tags_list = "b|i|u|s|strike|color|size|spoiler|box|spoilerbox|quote|code|centre|url|profile|list|\\*|img|youtube|audio|heading|notice";
   const tag_arg_check = (start, end) => {
-    var tag = part_of_list(values, start, end).join("");
+    let tag = values[start] + values[start + 1] + values[end];
     if(!tag) {
       return;
     }
-    var list_len = end - start + 1;
-    var tagname, arg = null, text = null;
-    var tag_ast_match = tag.match(/^\[\*\](.*)/);
-    var tag_tag_match = tag.match(new RegExp("^\\[(" + tags_list + ")(?:=(.*?))\\](.*)\\[\\/" + tags_list + "\\]$"));
+    let list_len = end - start + 1;
+    let tagname, arg = null, text = null;
+    let tag_ast_match = tag.match(/^\[\*\](.*)/);
+    let tag_tag_match = tag.match(new RegExp("^\\[(" + tags_list + ")(?:=(.*?))?\\](.*)\\[\\/(" + tags_list + ")\\]$"));
     if(tag_ast_match) {
       values[start] = "<li>";
       values[start + 1] = tag_ast_match[1].split(/(?:\[\*\]|\[\/list\])/)[0] + "</li>";
@@ -76,7 +76,7 @@ const bbcode_parser = (raw) => {
         return;
       case "quote": 
         if(arg && arg.match(/^".+"$/)) {
-          values[start] = "<blockquote><h4>" + arg + " wrote:</h4>";
+          values[start] = "<blockquote><h4>" + arg.replace(/"(.+)"/, "$1") + " wrote:</h4>";
           values[end] = "</blockquote>";
         } else if(!arg) {
           values[start] = "<blockquote>";
@@ -121,14 +121,14 @@ const bbcode_parser = (raw) => {
         return;
       case "img": 
         if(!arg && text.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/) && list_len == 3) {
-          values[start] = "<span class=\"proportional-container js-gallery\"><span class=\"proportional-container__height\" style=\"padding-bottom:55.952380952381%\"><img class=\"proportional-container__content\" src=\"" + text + "\" alt=\"\"></span></span>";
+          values[start] = "<span class=\"proportional-container js-gallery\"><span class=\"proportional-container__height\"><img style=\"position:relative\" src=\"" + text + "\" alt=\"\"></span></span>";
           values[start + 1] = "";
           values[end] = "";
         }
         return;
       case "youtube": 
         if(!arg && text.match(/^[\w-]{11}$/) && list_len == 3) {
-          values[start] = "<div class=\"bbcode__video\"><iframe src=\"https://www.youtube.com/embed/" + text + "?rel=0\" frameborder=\"0\"></iframe></div>";
+          values[start] = "<div class\"bbcode__video-box\"><div class=\"bbcode__video\"><iframe src=\"https://www.youtube.com/embed/" + text + "?rel=0\" frameborder=\"0\"></iframe></div></div>";
           values[start + 1] = "";
           values[end] = "";
         }
@@ -155,29 +155,29 @@ const bbcode_parser = (raw) => {
     }
     return;
   }
-  const part_of_list = (list, start, end) => {
-    var part_list = [];
-    for(let k = start; k < end; k++) {
-      part_list.push(list[k]);
-    }
-    return part_list;
-  }
-  const values = raw.split(new RegExp("(\\[\\/?(?:" + tags_list + ")(?:=.*?)?\\])"));
+  let temp_values = raw.split(new RegExp("(\\[\\/?(?:" + tags_list + ")(?:=.*?)?\\]|\n)"));
+  let values = temp_values.filter(item => item != "");
+  console.log(values);
   const tag_regexp = new RegExp("^\\[(\\/)?(" + tags_list + ")(?:=(.*?))?\\]$");
-  var counter = 0;
   for(let i = 0; i < values.length; i++) {
-    var tag_i_match = values[i].match(tag_regexp);
+    if(values[i] == "\n") {
+      if(values[i - 1].match(tag_regexp)) {
+        values[i] = "";
+      } else {
+        values[i] = "<br>";
+      }
+    }
+  }
+  for(let i = 0; i < values.length; i++) {
+    let tag_i_match = values[i].match(tag_regexp);
     if(tag_i_match) {
-      var tag_start = i;
-      var tag_end = -1;
+      let tag_start = i;
+      let tag_end = -1;
       if(tag_i_match[1] == undefined) {
         if(tag_i_match[2] != "*") {
-          var tag_check = 0;
+          let tag_check = 0;
           for(let j = i + 1; j < values.length; j++) {
-            if(j == values.length - 1) {
-              break;
-            }
-            var tag_j_match = values[j].match(tag_regexp);
+            let tag_j_match = values[j].match(tag_regexp);
             if(tag_j_match && tag_i_match[2] == tag_j_match[2]) {
               if(tag_j_match[1] == undefined) {
                 tag_check++;
@@ -194,12 +194,10 @@ const bbcode_parser = (raw) => {
             tag_arg_check(tag_start, tag_end);
           }
         } else {
-          tag_arg_check(tag_start, values.length);
+          tag_arg_check(tag_start, values.length - 1);
         }
-        counter++;
       }
     }
   }
-  console.log(values.join(""));
-  console.log("使用されている開始タグの数: " + counter);
+  return values.join("");
 }

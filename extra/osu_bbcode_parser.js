@@ -7,151 +7,153 @@ const bbcode_parser = (raw) => {
     if(!tag) {
       return;
     }
+    var list_len = end - start + 1;
     var tagname, arg = null, text = null;
     var tag_ast_match = tag.match(/^\[\*\](.*)/);
     var tag_tag_match = tag.match(new RegExp("^\\[(" + tags_list + ")(?:=(.*?))\\](.*)\\[\\/" + tags_list + "\\]$"));
     if(tag_ast_match) {
-      tagname = "*";
-      text = tag_ast_match[1].split(/(?:\[\*\]|\[\/list\])/)[0];
+      values[start] = "<li>";
+      values[start + 1] = tag_ast_match[1].split(/(?:\[\*\]|\[\/list\])/)[0] + "</li>";
+      return;
     } else if(tag_tag_match && tag_tag_match[1] == tag_tag_match[4]) {
       tagname = tag_tag_match[1];
       arg = tag_tag_match[2];
       text = tag_tag_match[3];
     } else {
-      return tag;
+      return;
     }
     switch (tagname) {
       case "b": 
         if(!arg) {
           values[start] = "<strong>";
           values[end] = "</strong>";
-          return;
-        } else {
-          return;
         }
+        return;
       case "i": 
         if(!arg) {
-          return "<em>" + text + "</em>";
-        } else {
-          return values;
+          values[start] = "<em>";
+          values[end] = "</em>";
         }
+        return;
       case "u": 
         if(!arg) {
-          return "<u>" + text + "</u>";
-        } else {
-          return values;
+          values[start] = "<u>";
+          values[end] = "</u>";
         }
+        return;
       case "s": 
       case "strike": 
         if(!arg) {
-          return "<del>" + text + "</del>";
-        } else {
-          return values;
+          values[start] = "<del>";
+          values[end] = "</del>";
         }
+        return;
       case "color": 
         if(arg && arg.match(new RegExp("^(?:(?:" + html_colors + ")|#[a-fA-F0-9]{6})$"))) {
-          return "<span style=\"color:" + arg + "\">" + text + "</span>";
-        } else {
-          return values;
+          values[start] = "<span style=\"color:" + arg + "\">";
+          values[end] = "</span>";
         }
+        return;
       case "size": 
         if(["50", "85", "100", "150"].indexOf(arg) != -1) {
-          return "<span class=\"size-" + arg + "\">" + text + "</span>";
-        } else {
-          return values;
+          values[start] = "<span class=\"size-" + arg + "\">";
+          values[end] = "</span>";
         }
+        return;
       case "spoiler": 
         if(!arg) {
-          return "<span class=\"spoiler\">" + text + "</span>";
-        } else {
-          return values;
+          values[start] = "<span class=\"spoiler\">";
+          values[end] = "</span>";
         }
+        return;
       case "spoilerbox": 
         arg = "SPOILER";
       case "box": 
         if(arg) {
-          return "<div class=\"js-spoilerbox bbcode-spoilerbox\"><button class=\"js-spoilerbox__link bbcode-spoilerbox__link\" type=\"button\"><span class=\"bbcode-spoilerbox__link-icon\"></span>" + arg + "</button><div class=\"bbcode-spoilerbox__body\">" + text + "</div></div>";
-        } else {
-          return values;
+          values[start] = "<div class=\"js-spoilerbox bbcode-spoilerbox\"><button class=\"js-spoilerbox__link bbcode-spoilerbox__link\" type=\"button\"><span class=\"bbcode-spoilerbox__link-icon\"></span>" + arg + "</button><div class=\"bbcode-spoilerbox__body\">";
+          values[end] = "</div></div>";
         }
+        return;
       case "quote": 
         if(arg && arg.match(/^".+"$/)) {
-          return "<blockquote><h4>" + arg + " wrote:</h4>" + text + "</blockquote>";
-        } else if(arg) {
-          return values;
-        } else {
-          return "<blockquote>" + text + "</blockquote>";
+          values[start] = "<blockquote><h4>" + arg + " wrote:</h4>";
+          values[end] = "</blockquote>";
+        } else if(!arg) {
+          values[start] = "<blockquote>";
+          values[end] = "</blockquote>";
         }
+        return;
       case "code": 
         if(!arg) {
-          return "<pre>" + text + "</pre>";
-        } else {
-          return values;
+          values[start] = "<pre>";
+          values[end] = "</pre>";
         }
+        return;
       case "centre": 
         if(!arg) {
-          return "<center>" + text + "</center>";
-        } else {
-          return values;
+          values[start] = "<center>";
+          values[end] = "</center>";
         }
+        return;
       case "url": 
         if(arg && arg.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/) && text) {
-          return "<a rel=\"nofollow\" href=\"" + arg.replaceAll("\"", "\\\"") + "\">" + text + "</a>";
-        } else if(!arg && text.match(/^(?:https?|ftps?):\/\/\w+?\.\w+?.*$/)) {
-          return "<a rel=\"nofollow\" href=\"" + text.replaceAll("\"", "\\\"") + "\">" + text + "</a>";
-        } else {
-          return values;
+          values[start] = "<a rel=\"nofollow\" href=\"" + arg.replaceAll("\"", "\\\"") + "\">";
+          values[end] = "</a>";
+        } else if(!arg && text.match(/^(?:https?|ftps?):\/\/\w+?\.\w+?.*$/) && list_len == 3) {
+          values[start] = "<a rel=\"nofollow\" href=\"" + text.replaceAll("\"", "\\\"") + "\">";
+          values[end] = "</a>";
         }
+        return;
       case "profile": 
-        if((arg && arg.match(/^\d+$/)) || text.match(/^[\w- \[\]]+$/)) {
-          return "<a class=\"user-name js-usercard\" href=\"https://osu.ppy.sh/users/" + (arg ? arg : text) + "\" data-hasqtip=\"107\" aria-describedby=\"qtip-107\">" + text + "</a>";
-        } else {
-          return values;
+        if(text.match(/^[\w- \[\]]+$/) && list_len == 3) {
+          values[start] = "<a class=\"user-name js-usercard\" href=\"https://osu.ppy.sh/users/" + text + "\" data-hasqtip=\"107\" aria-describedby=\"qtip-107\">";
+          values[end] = "</a>";
         }
+        return;
       case "list": 
         if(arg) {
-          return "<ol>" + text + "</ol>";
+          values[start] = "<ol>";
+          values[end] = "</ol>";
         } else {
-          return "<ol class=\"unordered\">" + text + "</ol>";
+          values[start] = "<ol class=\"unordered\">";
+          values[end] = "</ol>";
         }
-      case "*": 
-        if(!arg) {
-          return "<li>" + text + "</li>";
-        } else {
-          return values;
-        }
+        return;
       case "img": 
-        if(!arg && text.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/)) {
-          return "<span class=\"proportional-container js-gallery\"><span class=\"proportional-container__height\" style=\"padding-bottom:55.952380952381%\"><img class=\"proportional-container__content\" src=\"" + text + "\" alt=\"\"></span></span>";
-        } else {
-          return values;
+        if(!arg && text.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/) && list_len == 3) {
+          values[start] = "<span class=\"proportional-container js-gallery\"><span class=\"proportional-container__height\" style=\"padding-bottom:55.952380952381%\"><img class=\"proportional-container__content\" src=\"" + text + "\" alt=\"\"></span></span>";
+          values[start + 1] = "";
+          values[end] = "";
         }
+        return;
       case "youtube": 
-        if(!arg && text.match(/^[\w-]{11}$/)) {
-          return "<div class=\"bbcode__video\"><iframe src=\"https://www.youtube.com/embed/" + text + "?rel=0\" frameborder=\"0\"></iframe></div>";
-        } else {
-          return values;
+        if(!arg && text.match(/^[\w-]{11}$/) && list_len == 3) {
+          values[start] = "<div class=\"bbcode__video\"><iframe src=\"https://www.youtube.com/embed/" + text + "?rel=0\" frameborder=\"0\"></iframe></div>";
+          values[start + 1] = "";
+          values[end] = "";
         }
+        return;
       case "audio": 
-        if(!arg && text.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/)) {
-          return "<div class=\"audio-player js-audio--player\" data-audio-url=\"" + text + "\" data-audio-state=\"paused\" data-audio-autoplay=\"1\" data-audio-has-duration=\"1\" data-audio-time-format=\"minute_minimal\" data-audio-over50=\"0\" style=\"--duration:&quot;0:00&quot;; --current-time:&quot;0:00&quot;; --progress:0;\"><button type=\"button\" class=\"audio-player__button audio-player__button--play js-audio--play\"><span class=\"fa-fw play-button\"></span></button><div class=\"audio-player__bar audio-player__bar--progress js-audio--seek\"><div class=\"audio-player__bar-current\"></div></div><div class=\"audio-player__timestamps\"><div class=\"audio-player__timestamp audio-player__timestamp--current\"></div><div class=\"audio-player__timestamp-separator\">/</div><div class=\"audio-player__timestamp audio-player__timestamp--total\"></div></div></div>";
-        } else {
-          return values;
+        if(!arg && text.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/) && list_len == 3) {
+          values[start] = "<div class=\"audio-player js-audio--player\" data-audio-url=\"" + text + "\" data-audio-state=\"paused\" data-audio-autoplay=\"1\" data-audio-has-duration=\"1\" data-audio-time-format=\"minute_minimal\" data-audio-over50=\"0\" style=\"--duration:&quot;0:00&quot;; --current-time:&quot;0:00&quot;; --progress:0;\"><button type=\"button\" class=\"audio-player__button audio-player__button--play js-audio--play\"><span class=\"fa-fw play-button\"></span></button><div class=\"audio-player__bar audio-player__bar--progress js-audio--seek\"><div class=\"audio-player__bar-current\"></div></div><div class=\"audio-player__timestamps\"><div class=\"audio-player__timestamp audio-player__timestamp--current\"></div><div class=\"audio-player__timestamp-separator\">/</div><div class=\"audio-player__timestamp audio-player__timestamp--total\"></div></div></div>";
+          values[start + 1] = "";
+          values[end] = "";
         }
+        return;
       case "heading": 
         if(!arg) {
-          return "<h2>" + text + "</h2>";
-        } else {
-          return values;
+          values[start] = "<h2>";
+          values[end] = "</h2>";
         }
+        return;
       case "notice": 
         if(!arg) {
-          return "<div class=\"well\">" + text + "</div>";
-        } else {
-          return values;
+          values[start] = "<div class\"well\">";
+          values[end] = "</div>";
         }
+        return;
     }
-    return tag;
+    return;
   }
   const part_of_list = (list, start, end) => {
     var part_list = [];
@@ -189,14 +191,15 @@ const bbcode_parser = (raw) => {
             }
           }
           if(tag_end != -1) {
-            console.log(tag_arg_check(tag_i_match[2], tag_i_match[3], part_of_list(values, tag_start, tag_end).join("")));
+            tag_arg_check(tag_start, tag_end);
           }
         } else {
-          console.log(tag_arg_check("*", undefined, part_of_list(values, tag_start, values.length).join("")));
+          tag_arg_check(tag_start, values.length);
         }
         counter++;
       }
     }
   }
+  console.log(values.join(""));
   console.log("使用されている開始タグの数: " + counter);
 }

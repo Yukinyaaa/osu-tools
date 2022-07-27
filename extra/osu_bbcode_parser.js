@@ -1,5 +1,5 @@
 const bbcode_parser = (raw) => {
-  raw = raw.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  raw = raw.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replace(/\n/g, "<br>");
   const html_colors = "black|silver|gray|white|maroon|red|purple|fuchsia|green|lime|olive|yellow|navy|blue|teal|aqua|orange|aliceblue|antiquewhite|aquamarine|azure|beige|bisque|blanchedalmond|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|gainsboro|ghostwhite|gold|goldenrod|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|limegreen|linen|magenta|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|oldlace|olivedrab|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|thistle|tomato|turquoise|violet|wheat|whitesmoke|yellowgreen|rebeccapurple";
   const tags_list = "b|i|u|s|strike|color|size|spoiler|box|spoilerbox|quote|code|centre|url|profile|list|\\*|img|youtube|audio|heading|notice";
   const tag_arg_check = (start, end) => {
@@ -13,7 +13,7 @@ const bbcode_parser = (raw) => {
     let tag_tag_match = tag.match(new RegExp("^\\[(" + tags_list + ")(?:=(.*?))?\\](.*)\\[\\/(" + tags_list + ")\\]$"));
     if(tag_ast_match) {
       values[start] = "<li>";
-      values[start + 1] = tag_ast_match[1].split(/(?:\[\*\]|\[\/list\])/)[0] + "</li>";
+      values[start + 1] = tag_ast_match[1].split(/(?:\[\*\]|\[\/list\]|\n)/)[0] + "</li>";
       return;
     } else if(tag_tag_match && tag_tag_match[1] == tag_tag_match[4]) {
       tagname = tag_tag_match[1];
@@ -121,7 +121,7 @@ const bbcode_parser = (raw) => {
         return;
       case "img": 
         if(!arg && text.match(/^(?:https?|ftps?):\/\/.+?\..+?.*$/) && list_len == 3) {
-          values[start] = "<span class=\"proportional-container js-gallery\"><span class=\"proportional-container__height\"><img style=\"position:relative\" src=\"" + text + "\" alt=\"\"></span></span>";
+          values[start] = "<span class=\"proportional-container js-gallery\"><span class=\"proportional-container__height\"><img style=\"position:relative\" src=\"" + text + "\" alt=\"\"></span></span><br>";
           values[start + 1] = "";
           values[end] = "";
         }
@@ -157,17 +157,16 @@ const bbcode_parser = (raw) => {
   }
   let temp_values = raw.split(new RegExp("(\\[\\/?(?:" + tags_list + ")(?:=.*?)?\\]|\n)"));
   let values = temp_values.filter(item => item != "");
-  console.log(values);
   const tag_regexp = new RegExp("^\\[(\\/)?(" + tags_list + ")(?:=(.*?))?\\]$");
-  for(let i = 0; i < values.length; i++) {
-    if(values[i] == "\n") {
-      if(values[i - 1].match(tag_regexp)) {
-        values[i] = "";
-      } else {
-        values[i] = "<br>";
-      }
-    }
-  }
+  // for(let i = 0; i < values.length; i++) {
+  //   if(values[i] == "\n") {
+  //     if(values[i - 1].match(tag_regexp)) {
+  //       values[i] = "";
+  //     } else {
+  //       values[i] = "<br>";
+  //     }
+  //   }
+  // }
   for(let i = 0; i < values.length; i++) {
     let tag_i_match = values[i].match(tag_regexp);
     if(tag_i_match) {

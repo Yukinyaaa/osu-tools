@@ -216,4 +216,3 @@ const bbcode_parser = (raw) => {
   }
   return values.join("");
 }
-console.log(bbcode_parser("[*][color=white]color[/color]"));

@@ -4,7 +4,7 @@
 // @namespace       https://osu.ppy.sh/users/22136262
 // @downloadURL     https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/src/osu_check_follow.user.js
 // @updateURL       https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/src/osu_check_follow.user.js
-// @version         1.2
+// @version         1.3
 // @description:ja  相手にフォローされているか確認することができます
 // @description     Check if the other is follows you
 // @author          yuzupon1133
@@ -113,7 +113,7 @@
   }
   
   function gettoken() {
-    return document.cookie.replace(/.*XSRF-TOKEN=(.*?);?/, "$1");
+    return document.cookie.replace(/.*XSRF-TOKEN=(\w+);?.*/, "$1");
   }
 
   if (document.readyState == "complete" || document.readyState == "loaded" || document.readyState == "interactive") { //DOMLoaded

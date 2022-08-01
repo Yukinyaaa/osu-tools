@@ -29,6 +29,11 @@
 世界ランキングを（見た目上）1位にします。完全にネタスクリプトです。
 プロフィールページで`Ctrl` + `Q`を押すと適用されます。
 
+### [自動osu!direct](https://github.com/yuzupon1133/osu-tools/blob/main/src/osu_auto_osu_direct.user.js)
+
+外部サイトからビートマップページを開いた際に、自動でosu!directで開いてくれます。  
+※これだったら外部サイトにビートマップページのリンクがある場合に右クリックで即ダウンロードしたほうがいいとのご意見をいただきましたので考えときます。
+
 # ユーザースクリプトの追加要望・バグ報告・提案
 
 [Issues](https://github.com/yuzupon1133/osu-tools/issues)に建ててください。

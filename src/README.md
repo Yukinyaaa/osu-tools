@@ -24,9 +24,10 @@
 
 プロフィール（統計など）を15秒ごとに自動で更新します。
 
-### [ゴッドモード](https://github.com/yuzupon1133/osu-tools/blob/main/src/osu_god_mode.user.js) ※
+### [ゴッドモード](https://github.com/yuzupon1133/osu-tools/blob/main/src/osu_god_mode.user.js)
 
 世界ランキングを（見た目上）1位にします。完全にネタスクリプトです。
+プロフィールページで`Ctrl` + `Q`を押すと適用されます。
 
 # ユーザースクリプトの追加要望・バグ報告・提案
 

@@ -23,7 +23,13 @@
     for(key in attribute) {
       ctemp.setAttribute(key, attribute[key]);
     }
-    if(content) ctemp.append(content);
+    if(content) {
+      if(typeof(content) == "string") {
+        ctemp.innerHTML = content;
+      } else {
+        ctemp.append(content);
+      }
+    }
     return ctemp;
   }
   const mergedom = (dom, attribute) => {
@@ -80,21 +86,76 @@
   jtemp[1].firstChild.innerHTML = "#1";
   jtemp[3].firstChild.innerHTML = num_add_comma(random(22500, 23000));
   var rand = random(5500000, 6500000);
-  jtemp[4].firstChild.innerHTML = sec_to_dhm(rand);
-  jtemp[4].setAttribute("data-orig-title", rand/3600 + "時間");
+  jtemp[4].children[0].remove();
+  getByClassName("value-display__value")[4].append(
+    create("span", {
+      "data-tooltip-position": "bottom center",
+      title: (rand / 3600 | 0) + "時間"
+    }, sec_to_dhm(rand))
+  )
   
   jtemp = getByClassName("profile-rank-count")[0].children;
-  jtemp[0].innerHTML = jtemp[0].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(random(200, 300)));
-  jtemp[1].innerHTML = jtemp[1].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(random(50, 200)));
+  jtemp[0].innerHTML = jtemp[0].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(random(150, 250)));
+  jtemp[1].innerHTML = jtemp[1].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(random(50, 150)));
   jtemp[2].innerHTML = jtemp[2].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(random(800, 1200)));
   jtemp[3].innerHTML = jtemp[3].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(random(200, 400)));
   jtemp[4].innerHTML = jtemp[4].innerHTML.replace(/(<div.+>).+/, "$1" + num_add_comma(random(1000, 1500)));
   
   getByClassName("line-chart--profile-page")[0].children[0].children[0].innerHTML = '<path class="line-chart__line" d="M0,30L620.5125122070312,30"></path>';
-  getByClassName("line-chart__hover-area")[0].addEventListener("mousemove", () => {
-    var ltemp = getByClassName("line-chart__hover-circle")[0];
-    ltemp.style.transform = ltemp.style.transform.replace(/(.+, )\d+(px\))/, "$130$2");
-    getByClassName("line-chart__hover-info-box-text--y")[0].childNodes[1].textContent = " #1";
+  getByClassName("line-chart__hover-area")[0].remove();
+  getByClassName("line-chart--profile-page")[0].append(
+    create("div", {
+      class: "line-chart__hover-area",
+      style: "inset: 15px 5px; padding: 0px 10px;"
+    }, mergedom([
+        create("div", {
+          class: "line-chart__hover-line"
+        }),
+        create("div", {
+          class: "line-chart__hover-circle"
+        }),
+        mergedom([
+          create("div", {
+            class: "line-chart__hover-info-box-text line-chart__hover-info-box-text--x"
+          }),
+          create("div", {
+            class: "line-chart__hover-info-box-text line-chart__hover-info-box-text--y"
+          }, "<strong>世界ランキング</strong> #1")
+        ], {
+          class: "line-chart__hover-info-box",
+          "data-float": "left"
+        })
+      ], {
+        class: "line-chart__hover",
+        "data-visibility": "hidden"
+      })
+    )
+  )
+  getByClassName("line-chart__hover-area")[0].addEventListener("mousemove", (e) => {
+    getByClassName("line-chart__hover")[0].setAttribute("data-visibility", "visible");
+    let client = getByClassName("line-chart__hover")[0].getBoundingClientRect();
+    let infobox = getByClassName("line-chart__hover-info-box")[0];
+    let infoboxwidth = infobox.getBoundingClientRect().width;
+    if(infoboxwidth + 10 > e.x - client.left) {
+      infobox.setAttribute("data-float", "right");
+    } else if(e.x - client.left > client.width - infoboxwidth - 10) {
+      infobox.setAttribute("data-float", "left");
+    }
+    let persentage = round((e.x - client.left) / client.width * 89);
+    if(persentage < 0) persentage = 0;
+    if(persentage > 89) persentage = 89;
+    getByClassName("line-chart__hover-line")[0].style.transform = "translateX(" + (client.width * (persentage / 89) | 0) + "px)";
+    getByClassName("line-chart__hover-circle")[0].style.transform = "translate(" + (client.width * (persentage / 89) | 0) + "px, 30px)";
+    let ago = 89 - persentage;
+    if(ago <= 0) {
+      ago = "今"
+    } else {
+      ago += "日前"
+    }
+    getByClassName("line-chart__hover-info-box-text--x")[0].innerHTML = ago;
+  })
+  getByClassName("line-chart__hover-area")[0].addEventListener("mouseout", () => {
+    getByClassName("line-chart__hover")[0].setAttribute("data-visibility", "hidden");
   })
   
   jtemp = getByClassName("profile-stats__value");
@@ -106,8 +167,8 @@
   var level = random(102, 104);
   var min_score = 26931190827 + 99999999999 * (level - 100);
   var rand2 = random(10, 95);
-  var min_prog_score = min_score + floor(999999999999 * (rand2 / 100));
-  var max_prog_score = min_score + floor(999999999999 * ((rand2 + 1) / 100)) - 1;
+  var min_prog_score = min_score + floor(99999999999 * (rand2 / 100));
+  var max_prog_score = min_score + floor(99999999999 * ((rand2 + 1) / 100)) - 1;
   jtemp[3].innerHTML = num_add_comma(random(min_prog_score, max_prog_score));
   jtemp[4].innerHTML = num_add_comma(random(30000000, 50000000));
   jtemp[5].innerHTML = num_add_comma(random(5000, 8000));
@@ -120,8 +181,8 @@
   rand = random(5, 95);
   getByClassName("bar__fill")[0].setAttribute("style", "width: " + rand2 + "%");
   getByClassName("bar__text")[0].innerHTML = rand2 + "%";
-  rand = random()
-  getByClassName("user-level")[0].setAttribute("data-orig-title", "レベル " + level);
+  getByClassName("user-level")[0].removeAttribute("data-orig-title");
+  getByClassName("user-level")[0].setAttribute("title", "レベル " + level);
   getByClassName("user-level")[0].innerHTML = level;
   
 })();

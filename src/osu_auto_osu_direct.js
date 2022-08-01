@@ -18,6 +18,11 @@
 
 (() => {
   
-  location.href = "osu://s/" + location.href.replace(/https:\/\/osu\.ppy\.sh\/beatmapsets\/(\d+?)#.*/, "$1");
+  // const referrer = /^https?:\/\/.+/;
+  const referrer = /^https:\/\/www\.google\.com/;
+  
+  if(document.referrer.match(referrer)) {
+    location.href = "osu://s/" + location.href.replace(/https:\/\/osu\.ppy\.sh\/beatmapsets\/(\d+?)#.*/, "$1");
+  }
   
 })();

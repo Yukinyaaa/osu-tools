@@ -35,6 +35,13 @@ const beatmap_parser = (raw) => {
       );
     }
   }
+  const ASCIICheck = (str) => {
+    if(str.match(/^[\x20-\x7e]*$/)) {
+      return true;
+    } else {
+      throw new Error("Value of '" + key + "' must be ASCII");
+    }
+  }
   const rule = {
     "General": {
       "AudioFilename: (.+)": (p1) => {
@@ -156,26 +163,76 @@ const beatmap_parser = (raw) => {
         }
       }
     },
-    "Metadata": [
-      "Title:.+",
-      "TitleUnicode:.+",
-      "Artist:.+",
-      "ArtistUnicode:.+",
-      "Creator:.+",
-      "Version:.+",
-      "Sourse:.+",
-      "Tags:.+",
-      "BeatmapID:.+",
-      "BeatmapSetID:.+"
-    ],
-    "Difficulty": [
-      "HPDrainRate:.+",
-      "CircleSize:.+",
-      "OverrallDifficulty:.+",
-      "ApproachRate:.+",
+    "Metadata": {
+      "Title:(.+)": (p1) => {
+        if(ASCIICheck(p1)) {
+          beatmap.metadata.title = p1;
+        }
+      },
+      "TitleUnicode:(.+)": (p1) => {
+        beatmap.metadata.titleUnicode = p1;
+      },
+      "Artist:(.+)": (p1) => {
+        if(ASCIICheck(p1)) {
+          beatmap.metadata.artist = p1;
+        }
+      },
+      "ArtistUnicode:(.+)": (p1) => {
+        beatmap.metadata.artist = p1;
+      },
+      "Creator:(.+)": (p1) => {
+        beatmap.metadata.creator = p1;
+      },
+      "Version:(.+)": (p1) => {
+        beatmap.metadata.version = p1;
+      },
+      "Source:(.+)": (p1) => {
+        beatmap.metadata.source = p1;
+      },
+      "Tags:(.+)": (p1) => {
+        beatmap.metadata.tags = p1.split(" ");
+      },
+      "BeatmapID:(.+)": (p1) => {
+        p1 = tonum(p1);
+        if(isInt(p1) && numCheck(p1, "0 <= n")) {
+          beatmap.metadata.beatmapID = p1;
+        }
+      },
+      "BeatmapSetID:(.+)": (p1) => {
+        p1 = tonum(p1);
+        if(isInt(p1) && numCheck(p1, "-1 <= n")) {
+          beatmap.metadata.beatmapSetID = p1;
+        }
+      }
+    },
+    "Difficulty": {
+      "HPDrainRate:(.+)": (p1) => {
+        p1 = tonum(p1);
+        if(numCheck(p1, "0 <= n && n <= 10")) {
+          beatmap.difficulty.HPDrainRate = p1;
+        }
+      },
+      "CircleSize:(.+)": (p1) => {
+        p1 = tonum(p1);
+        if(numCheck(p1, "0 <= n && n <= 10")) {
+          beatmap.difficulty.HPDrainRate = p1;
+        }
+      },
+      "OverrallDifficulty:(.+)": (p1) => {
+        p1 = tonum(p1);
+        if(numCheck(p1, "0 <= n && n <= 10")) {
+          beatmap.difficulty.HPDrainRate = p1;
+        }
+      },
+      "ApproachRate:(.+)": (p1) => {
+        p1 = tonum(p1);
+        if(numCheck(p1, "0 <= n && n <= 10")) {
+          beatmap.difficulty.HPDrainRate = p1;
+        }
+      },
       "SliderMultiplier:.+",
       "SliderTiclRate:.+"
-    ],
+    },
     "Events": [
       ".+"
     ],

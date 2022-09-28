@@ -257,7 +257,7 @@
   }
   
   document.addEventListener("keypress", (e) => {
-    if(e.ctrlKey && e.keyCode == 17) {
+    if(e.ctrlKey && e.key == "q") {
       if(location.href.match(/:\/\/osu\.ppy\.sh\/users\/.+/)) god_mode();
     }
   })

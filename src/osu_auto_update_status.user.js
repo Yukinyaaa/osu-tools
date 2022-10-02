@@ -17,7 +17,15 @@
 // https://github.com/yuzupon1133/osu-tools/blob/main/src/osu_auto_update_status.user.js
 
 (() => {
+if(document.readyState == "complete" || document.readyState == "loaded" || document.readyState == "interactive") {
+  main();
+} else {
+  window.addEventListener("DOMContentLoaded", () => {
+    main();
+  })
+}
 
+function main() {
 const create = (tagName, attribute, content) => {
   var ctemp = document.createElement(tagName);
   for(key in attribute) {
@@ -228,5 +236,5 @@ const time_status_update = () => {
   setTimeout(time_status_update, 1000);
 };
 setTimeout(time_status_update, 1000);
-
+}
 })();

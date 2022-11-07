@@ -3,7 +3,7 @@
 // @namespace       https://osu.ppy.sh/users/22136262
 // @downloadURL     https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/wip/users_direct.js
 // @updateURL       https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/wip/users_direct.js
-// @version         0.2
+// @version         0.3
 // @description:ja  どのページからでも瞬時にユーザーページに移動
 // @description     Quickly jump to a user page from any page
 // @author          yuzupon1133
@@ -11,6 +11,12 @@
 // @icon            https://www.google.com/s2/favicons?sz=64&domain=ppy.sh
 // @grant           none
 // ==/UserScript==
+
+// > what's new in version 0.3 <
+// - press escape key on input element to now deletes all characters.
+// - fixed some bugs.
+// - changed some wording.
+// - changed item layout to two columns
 
 // > what's new in version 0.2 <
 // - fixed z-index problem.
@@ -101,9 +107,18 @@ String.prototype.toSnakeCase = function(sep) {
 function ObjectStyleToString(styles) {
   let styleList = [];
   for(let propety in styles) {
-    styleList.push(propety.toSnakeCase() + ":" + styles[propety]);
+    // if(type(propety) == "object") {
+    //   let styleList2 = [];
+    //   for(let propety2 in propety) {
+    //     styleList2.push(propety2.toSnakeCase() + ":" + propety[propety2] + ";");
+    //   }
+    //   console.log(styleList2);
+    //   styleList.push("}" + propety + "{" + styleList2.join(""));
+    // } else {
+      styleList.push(propety.toSnakeCase() + ":" + styles[propety] + ";");
+    // }
   }
-  return styleList.join(";");
+  return styleList.join("");
 }
 function createUUID() { // https://mebee.info/2022/07/19/post-61487/
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, a => {
@@ -244,7 +259,7 @@ Element.prototype.addListener = function(type, listener, options) {
 Element.prototype.addClass = function(...classes) {
   if(classes.length) {
     for(let item of classes) {
-      this.classList.add(item);
+      if(item) this.classList.add(item);
     }
   }
   return this;
@@ -252,7 +267,7 @@ Element.prototype.addClass = function(...classes) {
 Element.prototype.removeClass = function(...classes) {
   if(classes.length) {
     for(let item of classes) {
-      this.classList.remove(item);
+      if(item) this.classList.remove(item);
     }
   }
   return this;
@@ -260,7 +275,7 @@ Element.prototype.removeClass = function(...classes) {
 Element.prototype.toggleClass = function(...classes) {
   if(classes.length) {
     for(let item of classes) {
-      this.classList.toggle(item);
+      if(item) this.classList.toggle(item);
     }
   }
   return this;
@@ -344,7 +359,9 @@ function setLocal(name, value) {
 function getLocal(name, json) {
   let value = localStorage.getItem(name);
   if(json) {
-    value = JSON.parse(value);
+    try {
+      value = JSON.parse(value);
+    } catch(e) {}
   }
   return value;
 }
@@ -363,7 +380,9 @@ function setSession(name, value) {
 function getSession(name, json) {
   let value = sessionStorage.getItem(name);
   if(json) {
-    value = JSON.parse(value);
+    try {
+      value = JSON.parse(value);
+    } catch(e) {}
   }
   return value;
 }
@@ -380,7 +399,7 @@ if(getLocal("fd_add_users")) {
   add_users = getLocal("fd_add_users", true);
 }
 window.addEventListener("beforeunload", e => {
-  removeSession("fd_load_users");
+  removeSession("fd_load_friends");
   removeSession("fd_nav_focus");
   removeSession("fd_search_users");
   removeSession("fd_value_users");
@@ -405,27 +424,30 @@ ajax({
         last: value.last_visit,
       });
     });
-    console.log(friends);
-    setSession("fd_load_users", friends);
+    setSession("fd_load_friends", friends);
     reloadFriendsList(getSession("fd_value_friends"));
   }
 });
 
 function getNavFocustUserList() {
   if(getSession("fd_nav_focus") == "users") {
-    if(getLocal("fd_add_users")) {
-      return getLocal("fd_add_users", true);
-    }
+    return getLocal("fd_add_users", true);
   } else if(getSession("fd_nav_focus") == "friends") {
-    if(getSession("fd_load_users")) {
-      return getSession("fd_load_users", true);
-    }
+    return getSession("fd_load_friends", true);
   } else if(getSession("fd_nav_focus") == "search") {
-    if(getSession("fd_search_users")) {
-      return getSession("fd_search_users", true);
-    }
+    return getSession("fd_search_users", true);
   }
-  return [];
+  return undefined;
+}
+function getNowSearchQuery() {
+  if(getSession("fd_nav_focus") == "users") {
+    return getSession("fd_value_users");
+  } else if(getSession("fd_nav_focus") == "friends") {
+    return getSession("fd_value_friends");
+  } else if(getSession("fd_nav_focus") == "search") {
+    return getSession("fd_value_search");
+  }
+  return undefined;
 }
 function getDateOffset(date) {
   let offset = (new Date().getTime() - new Date(date).getTime()) / 1000;
@@ -455,7 +477,7 @@ function getDateOffset(date) {
 }
 function findUserFromId(id) {
   if(!is_friends_loaded) return null;
-  for(let value of getSession("fd_load_users", true)) {
+  for(let value of getSession("fd_load_friends", true)) {
     if(value.id == id) {
       return value;
     }
@@ -464,7 +486,7 @@ function findUserFromId(id) {
 }
 function reloadFriendsList(query) {
   let users_list = getNavFocustUserList();
-  if(users_list != undefined) {
+  if(users_list) {
     let added_id = [];
     for(let value of add_users) {
       added_id.push(value.id);
@@ -495,7 +517,7 @@ function reloadFriendsList(query) {
             id: value.id,
           }))
           .addListener("click", e => {
-            friend_toggle(e.currentTarget);
+            user_toggle(e.currentTarget);
           })
           .setAttribute("title", !value.add ? "Add to list" : "Remove from list")
           .append(
@@ -511,6 +533,8 @@ function reloadFriendsList(query) {
   } else {
     if(getSession("fd_nav_focus") == "friends") {
       _$.getById("fd_screen_add_list").setText("Loading, this may take a couple seconds (if this message does not disappear, an error may have occurred).");
+    } else if(getSession("fd_nav_focus") == "search") {
+      _$.getById("fd_screen_add_list").setText("Type to search user");
     } else {
       _$.getById("fd_screen_add_list").setText("An error may have occurred, please check the console.");
     }
@@ -532,7 +556,6 @@ function reloadFriendsList(query) {
           .setAttribute("title", (() => {
             if(is_friends_loaded) {
               if(status) {
-                console.log(status.online);
                 if(status.online) {
                   return "Currently online";
                 } else {
@@ -566,25 +589,24 @@ function reloadFriendsList(query) {
     _$.getById("add_users").setText("Click \"edit\" to add users!")
   }
 }
-function friend_toggle(e) {
+function user_toggle(e) {
   if(!e.classExists("fd_add")) {
     let user = JSON.parse(e.getAttribute("data-list-item-json"));
     for(let i = 0; i < add_users.length; i++) {
       if(add_users[i].id == user.id) {
-        reloadFriendsList();
         return;
       }
     }
     add_users.push(user);
     setLocal("fd_add_users", add_users);
-    reloadFriendsList();
+    reloadFriendsList(getNowSearchQuery());
   } else {
     let user = JSON.parse(e.getAttribute("data-list-item-json"));
     for(let i = 0; i < add_users.length; i++) {
       if(add_users[i].id == user.id) {
         add_users.splice(i, 1);
         setLocal("fd_add_users", add_users);
-        reloadFriendsList();
+        reloadFriendsList(getNowSearchQuery());
         break;
       }
     }
@@ -751,7 +773,7 @@ function body_append() {
       .append(
         _$("div")
         .setStyle({
-          width: "55vw",
+          width: "47vw",
           height: "65vh",
           backgroundColor: "white",
           padding: "15px",
@@ -867,6 +889,17 @@ function body_append() {
             .setAttribute("placeholder", "type here to search...")
             .setAttribute("maxlength", "20")
             .addListener("keydown", e => {
+              if(e.key == "Escape") {
+                if(getSession("fd_nav_focus") == "users") {
+                  setSession("fd_value_users", "");
+                } else if(getSession("fd_nav_focus") == "friends") {
+                  setSession("fd_value_friends", "");
+                } else if(getSession("fd_nav_focus") == "search") {
+                  setSession("fd_value_search", "");
+                }
+                e.target.value = "";
+                reloadFriendsList();
+              }
               if(!e.key.match(/[\w\-\[\]]/)) {
                 e.preventDefault();
               }
@@ -885,7 +918,7 @@ function body_append() {
                 }
                 e.target.setAttribute("data-interval-id", setTimeout(() => {
                   if(e.target.value) {
-                    _$.getById("fd_screen_add_search").setText("Loading...");
+                    _$.getById("fd_screen_add_list").setText("Loading...");
                     ajax({
                       url: "https://osu.ppy.sh/home/quick-search?query=" + encodeURIComponent(e.target.value),
                       success: e => {
@@ -921,11 +954,25 @@ function body_append() {
           .setID("fd_screen_add_list")
           .setStyle({
             overflowY: "auto",
-            height: "348px",
+            height: "calc(65vh - 120px)",
+            width: "calc(47vw - 25px)",
+            paddingRight: "15px",
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignContent: "flex-start",
+            overflowY: "scroll",
           })
           .addStyle({
+            // "@media screen (max-width:1480px)": {
+            //   "#fd_screen_add_list": {
+            //     flexDirection: "row !important",
+            //     flexWrap: "wrap",
+            //   }
+            // },
             ".fd_list_item": {
-              marginBottom: "5px",
+              marginBottom: "7px",
               display: "flex",
               alignItems: "center",
               flexDirection: "row",

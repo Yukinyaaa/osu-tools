@@ -3,7 +3,7 @@
 // @namespace       https://osu.ppy.sh/users/22136262
 // @downloadURL     https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/wip/users_direct.js
 // @updateURL       https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/wip/users_direct.js
-// @version         0.3
+// @version         0.4
 // @description:ja  どのページからでも瞬時にユーザーページに移動
 // @description     Quickly jump to a user page from any page
 // @author          yuzupon1133
@@ -12,16 +12,25 @@
 // @grant           none
 // ==/UserScript==
 
+// > what's new in version 0.4 <
+// - fixed a problem that prevented scripts from working when the back button was pressed.
+// https://github.com/yuzupon1133/osu-tools/blob/main/wip/users_direct.user.js
+
 // > what's new in version 0.3 <
 // - press escape key on input element to now deletes all characters.
 // - fixed some bugs.
 // - changed some wording.
 // - changed item layout to two columns
+// https://github.com/yuzupon1133/osu-tools/blob/909886502873f45510616411e9d46ab03b9c9698/wip/users_direct.user.js
 
 // > what's new in version 0.2 <
 // - fixed z-index problem.
 // - added online/offline status (this is only for user you have added as friends).
 // - the mechanism for retrieving friend info has changed.
+// https://github.com/yuzupon1133/osu-tools/blob/191d9b63bb724036c75a0a41b8d1d94d16a33924/wip/users_direct.user.js
+
+// > version 0.1 <
+// https://github.com/yuzupon1133/osu-tools/blob/ef510c0e4fdff4ec5ecb208d719285d707bf3ac2/wip/users_direct.user.js
 
 (() => {
 function type(data, name, err) {
@@ -1052,6 +1061,12 @@ function body_append() {
 }
 body_append();
 setInterval(body_append, 1000);
+window.addEventListener("popstate", e => {
+  if(_$.getById("fd_screen")) {
+    _$.getById("fd_screen").remove();
+  }
+  body_append();
+});
 
 // _$("div")
 // .setText("An error occured! Please check the console.")

@@ -8,12 +8,14 @@
 // @description     Quickly jump to a user page from any page
 // @author          yuzupon1133
 // @match           https://osu.ppy.sh/*
+// @exclude         https://osu.ppy.sh/ss/*
 // @icon            https://www.google.com/s2/favicons?sz=64&domain=ppy.sh
 // @grant           none
 // ==/UserScript==
 
 // > what's new in version 0.4 <
 // - fixed a problem that prevented scripts from working when the back button was pressed.
+// - hide navigation when open screenshot preview (osu.ppy.sh/ss/).
 // https://github.com/yuzupon1133/osu-tools/blob/main/wip/users_direct.user.js
 
 // > what's new in version 0.3 <

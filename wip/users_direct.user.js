@@ -16,6 +16,7 @@
 // > what's new in version 0.4 <
 // - fixed a problem that prevented scripts from working when the back button was pressed.
 // - hide navigation when open screenshot preview (osu.ppy.sh/ss/).
+// - fixed z-index problem.
 // https://github.com/yuzupon1133/osu-tools/blob/main/wip/users_direct.user.js
 
 // > what's new in version 0.3 <
@@ -199,22 +200,11 @@ Element.prototype.addStyle = function(styles) {
   for(let name in styles) {
     classesList.push(name + "{" + ObjectStyleToString(styles[name]) + "}");
   }
-  if(_$.getById("fd_styles")) {
-    _$.getById("fd_styles")
-    .append(
-      _$("style")
-      .setText(classesList.join(""))
-    );
-  } else {
-    document.body.append(
-      _$("div")
-      .setID("fd_styles")
-      .append(
-        _$("style")
-        .setText(classesList.join(""))
-      )
-    );
-  }
+  _$.if(_$.getById("fd_styles"), _$.getById("fd_styles"), _$("div").setID("fd_styles"))
+  .append(
+    _$("style")
+    .setText(classesList.join(""))
+  )
   return this;
 }
 function addStyle(styles) {
@@ -360,6 +350,10 @@ _$.and = function(cond1, cond2, node1, node2) {
   } else {
     return node2;
   }
+}
+Element.prototype.do = function(func) {
+  func(this);
+  return this;
 }
 function setLocal(name, value) {
   if(type(value) == "object" || type(value) == "array") {
@@ -519,6 +513,7 @@ function reloadFriendsList(query) {
           .setSrc(value.icon),
           _$("a")
           .setHref("https://osu.ppy.sh/u/" + value.id)
+          .setAttribute("rel", "nofollow")
           .setText(value.name),
           _$("div")
           .addClass(value.add ? "fd_add" : null)
@@ -562,6 +557,7 @@ function reloadFriendsList(query) {
           .setSrc(value.icon),
           _$("a")
           .setHref("https://osu.ppy.sh/u/" + value.id)
+          .setAttribute("rel", "nofollow")
           .setText(value.name),
           _$("div")
           .setAttribute("title", (() => {
@@ -719,6 +715,9 @@ function body_append() {
         .setID("add_users")
       ),
       _$("div")
+      .do(e => {
+        e.event = true;
+      })
       .setStyle({
         position: "fixed",
         left: "0",
@@ -732,7 +731,7 @@ function body_append() {
         alignItems: "center",
         cursor: "pointer",
         transition: "0.25s",
-        zIndex: "999",
+        zIndex: "500",
         userSelect: "none",
       }, true)
       .setHoverStyle({
@@ -1059,16 +1058,17 @@ function body_append() {
       )
     )
     reloadFriendsList();
+  } else {
+    if(!_$.getById("fd_button").event) {
+      _$.getById("fd_button").remove();
+      _$.getById("fd_screen").remove();
+      _$.getById("fd_screen_add").remove();
+      body_append();
+    }
   }
 }
 body_append();
 setInterval(body_append, 1000);
-window.addEventListener("popstate", e => {
-  if(_$.getById("fd_screen")) {
-    _$.getById("fd_screen").remove();
-  }
-  body_append();
-});
 
 // _$("div")
 // .setText("An error occured! Please check the console.")

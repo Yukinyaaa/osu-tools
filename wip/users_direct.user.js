@@ -3,7 +3,7 @@
 // @namespace       https://osu.ppy.sh/users/22136262
 // @downloadURL     https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/wip/users_direct.user.js
 // @updateURL       https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/wip/users_direct.user.js
-// @version         0.4
+// @version         0.5
 // @description:ja  どのページからでも瞬時にユーザーページに移動
 // @description     Quickly jump to a user page from any page
 // @author          yuzupon1133
@@ -13,17 +13,27 @@
 // @grant           none
 // ==/UserScript==
 
+// Attention! If the window size is less than 770px * 310px, the layout will be broken, but I don't intend to fix this.
+
+// > what's new in version 0.5 <
+// - minor style changes.
+// - added display of search hit counts.
+// - shadow has been added to the item list (experimental).
+// - fixed z-index problem.
+// - search is now available for userID.
+// https://github.com/yuzupon1133/osu-tools/blob/main/wip/users_direct.user.js
+
 // > what's new in version 0.4 <
 // - fixed a problem that prevented scripts from working when the back button was pressed.
 // - hide navigation when open screenshot preview (osu.ppy.sh/ss/).
 // - fixed z-index problem.
-// https://github.com/yuzupon1133/osu-tools/blob/main/wip/users_direct.user.js
+// https://github.com/yuzupon1133/osu-tools/blob/141dd494693aec71266a06ff077f209d9a9fdd38/wip/users_direct.user.js
 
 // > what's new in version 0.3 <
 // - press escape key on input element to now deletes all characters.
 // - fixed some bugs.
 // - changed some wording.
-// - changed item layout to two columns
+// - changed item layout to two columns.
 // https://github.com/yuzupon1133/osu-tools/blob/909886502873f45510616411e9d46ab03b9c9698/wip/users_direct.user.js
 
 // > what's new in version 0.2 <
@@ -499,7 +509,7 @@ function reloadFriendsList(query) {
     users_list = users_list.filter(value => {
       value.add = added_id.includes(value.id);
       if(query) {
-        return value.name.toLowerCase().indexOf(query.toLowerCase()) != -1;
+        return (value.name.toLowerCase().indexOf(query.toLowerCase()) != -1 || String(value.id).indexOf(query) != -1);
       }
       return true;
     });
@@ -514,7 +524,10 @@ function reloadFriendsList(query) {
           _$("a")
           .setHref("https://osu.ppy.sh/u/" + value.id)
           .setAttribute("rel", "nofollow")
-          .setText(value.name),
+          .append(
+            _$("span")
+            .setText(value.name)
+          ),
           _$("div")
           .addClass(value.add ? "fd_add" : null)
           .setAttribute("data-list-item-json", JSON.stringify({
@@ -533,13 +546,21 @@ function reloadFriendsList(query) {
         )
       })
     );
-    if(users_list.length == 0) {
+    if(!(_$.getById("fd_screen_add_list").scrollTop + _$.getById("fd_screen_add_list").clientHeight >= _$.getById("fd_screen_add_list").scrollHeight - 5)) {
+      _$.getById("fd_screen_add_list_bottom").style.display = "block";
+    }
+    if(_$.getById("fd_screen_add_list").scrollTop != 0) {
+      _$.getById("fd_screen_add_list_top").style.display = "block";
+    }
+    _$.getById("fd_screen_add_count_of_hits").setText(users_list.length + " hits");
+    if(!users_list.length) {
       _$.getById("fd_screen_add_list").setText("No results!");
     }
   } else {
     if(getSession("fd_nav_focus") == "friends") {
       _$.getById("fd_screen_add_list").setText("Loading, this may take a couple seconds (if this message does not disappear, an error may have occurred).");
     } else if(getSession("fd_nav_focus") == "search") {
+      _$.getById("fd_screen_add_count_of_hits").setText("? hits");
       _$.getById("fd_screen_add_list").setText("Type to search user");
     } else {
       _$.getById("fd_screen_add_list").setText("An error may have occurred, please check the console.");
@@ -558,7 +579,10 @@ function reloadFriendsList(query) {
           _$("a")
           .setHref("https://osu.ppy.sh/u/" + value.id)
           .setAttribute("rel", "nofollow")
-          .setText(value.name),
+          .append(
+            _$("span")
+            .setText(value.name)
+          ),
           _$("div")
           .setAttribute("title", (() => {
             if(is_friends_loaded) {
@@ -597,8 +621,8 @@ function reloadFriendsList(query) {
   }
 }
 function user_toggle(e) {
+  let user = JSON.parse(e.getAttribute("data-list-item-json"));
   if(!e.classExists("fd_add")) {
-    let user = JSON.parse(e.getAttribute("data-list-item-json"));
     for(let i = 0; i < add_users.length; i++) {
       if(add_users[i].id == user.id) {
         return;
@@ -608,7 +632,6 @@ function user_toggle(e) {
     setLocal("fd_add_users", add_users);
     reloadFriendsList(getNowSearchQuery());
   } else {
-    let user = JSON.parse(e.getAttribute("data-list-item-json"));
     for(let i = 0; i < add_users.length; i++) {
       if(add_users[i].id == user.id) {
         add_users.splice(i, 1);
@@ -663,10 +686,9 @@ function body_append() {
         color: "black",
         width: "215px",
         height: "60vh",
-        padding: "10px 5px",
-        overflowY: "scroll",
+        padding: "10px 0px 10px 5px",
         transition: "0.25s",
-        zIndex: "99",
+        zIndex: "102",
         userSelect: "none",
       }, true)
       .setID("fd_screen")
@@ -677,18 +699,17 @@ function body_append() {
       })
       .append(
         _$("div")
-        .addStyle({
-          ".fd_screen_button": {
-            marginBottom: "10px",
-            height: "26px",
-            border: "3px solid black",
-            borderRadius: "7px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "0.25s",
-            cursor: "pointer",
-          }
+        .setStyle({
+          marginBottom: "10px",
+          height: "26px",
+          border: "3px solid black",
+          borderRadius: "7px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "0.25s",
+          cursor: "pointer",
+          marginRight: "25px",
         }, true)
         .addClass("fd_screen_button")
         .setHoverStyle({
@@ -713,6 +734,10 @@ function body_append() {
         ),
         _$("div")
         .setID("add_users")
+        .setStyle({
+          height: "calc(60vh - 55px)",
+          overflowY: "scroll",
+        })
       ),
       _$("div")
       .do(e => {
@@ -783,7 +808,7 @@ function body_append() {
       .append(
         _$("div")
         .setStyle({
-          width: "47vw",
+          width: "43vw",
           height: "65vh",
           backgroundColor: "white",
           padding: "15px",
@@ -953,11 +978,34 @@ function body_append() {
               }
             })
             .setStyle({
-              width: "312px",
+              width: "calc(43vw - 355px)",
+              minWidth: "182px",
               height: "30px",
               fontSize: "14px",
               padding: "0 10px",
               borderRadius: "5px",
+            }),
+            _$("span")
+            .setID("fd_screen_add_count_of_hits")
+            .setStyle({
+              marginLeft: "15px",
+            })
+            .setText("? hits")
+          ),
+          _$("div")
+          .setID("fd_screen_add_list_top")
+          .setStyle({
+            display: "none",
+            height: "0",
+            position: "relative",
+          })
+          .append(
+            _$("div")
+            .setStyle({
+              height: "25px",
+              background: "linear-gradient(rgba(0, 0, 0, 0.05), #00000000)",
+              width: "calc(43vw - 42px)",
+              pointerEvents: "none",
             })
           ),
           _$("div")
@@ -965,7 +1013,7 @@ function body_append() {
           .setStyle({
             overflowY: "auto",
             height: "calc(65vh - 120px)",
-            width: "calc(47vw - 25px)",
+            width: "calc(43vw - 25px)",
             paddingRight: "15px",
             display: "flex",
             flexDirection: "row",
@@ -973,6 +1021,18 @@ function body_append() {
             justifyContent: "space-between",
             alignContent: "flex-start",
             overflowY: "scroll",
+          })
+          .addListener("scroll", e => {
+            if(e.currentTarget.scrollTop == 0) {
+              _$.getById("fd_screen_add_list_top").style.display = "none";
+            } else {
+              _$.getById("fd_screen_add_list_top").style.display = "block";
+            }
+            if(e.currentTarget.scrollTop + e.currentTarget.clientHeight >= e.currentTarget.scrollHeight - 5) {
+              _$.getById("fd_screen_add_list_bottom").style.display = "none";
+            } else {
+              _$.getById("fd_screen_add_list_bottom").style.display = "block";
+            }
           })
           .addStyle({
             // "@media screen (max-width:1480px)": {
@@ -996,7 +1056,7 @@ function body_append() {
             ".fd_screen_add_list_item > a": {
               display: "flex",
               alignItems: "center",
-              width: "233px",
+              width: "200px",
               height: "100%",
               marginRight: "5px",
             },
@@ -1029,7 +1089,12 @@ function body_append() {
               display: "flex",
               alignItems: "center",
               height: "100%",
-              width: "120px",
+              width: "110px",
+            },
+            ".fd_screen_list_item > a > span, .fd_screen_add_list_item > a > span": {
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+              overflowX: "hidden",
             },
             ".fd_screen_list_item > div": {
               width: "25px",
@@ -1037,6 +1102,7 @@ function body_append() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              marginLeft: "auto",
             },
             ".fd_screen_list_item > div > div" : {
               width: "10px",
@@ -1053,7 +1119,25 @@ function body_append() {
             ".fd_status_hidden": {
               backgroundColor: "orange !important",
             }
+          }),
+          _$("div")
+          .setID("fd_screen_add_list_bottom")
+          .setStyle({
+            display: "none",
+            height: "0",
+            position: "relative",
           })
+          .append(
+            _$("div")
+            .setStyle({
+              height: "25px",
+              background: "linear-gradient(#00000000, rgba(0, 0, 0, 0.05))",
+              width: "calc(43vw - 42px)",
+              pointerEvents: "none",
+              position: "relative",
+              top: "-25px",
+            })
+          )
         )
       )
     )

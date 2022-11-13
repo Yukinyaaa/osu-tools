@@ -3,7 +3,7 @@
 // @namespace       https://osu.ppy.sh/users/22136262
 // @downloadURL     https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/wip/users_direct.user.js
 // @updateURL       https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/wip/users_direct.user.js
-// @version         0.5
+// @version         0.6
 // @description:ja  どのページからでも瞬時にユーザーページに移動
 // @description     Quickly jump to a user page from any page
 // @author          yuzupon1133
@@ -15,13 +15,21 @@
 
 // Attention! If the window size is less than 770px * 310px, the layout will be broken, but I don't intend to fix this.
 
+// > what's new in version 0.6 <
+// - made major code changes to improve the readability of the code.
+// - moved most strings to css "content" property.
+// - shadow has been added to the another item list (experimental).
+// - element position can now be moved left-side or right-side.
+// - focus on input element when navigation button is pressed.
+// https://github.com/yuzupon1133/osu-tools/blob/main/wip/users_direct.user.js
+
 // > what's new in version 0.5 <
 // - minor style changes.
 // - added display of search hit counts.
 // - shadow has been added to the item list (experimental).
 // - fixed z-index problem.
 // - search is now available for userID.
-// https://github.com/yuzupon1133/osu-tools/blob/main/wip/users_direct.user.js
+// https://github.com/yuzupon1133/osu-tools/blob/b9d53d464e51393a03c83e06ae98f67b3cdd1163/wip/users_direct.user.js
 
 // > what's new in version 0.4 <
 // - fixed a problem that prevented scripts from working when the back button was pressed.
@@ -129,36 +137,9 @@ String.prototype.toSnakeCase = function(sep) {
 function ObjectStyleToString(styles) {
   let styleList = [];
   for(let propety in styles) {
-    // if(type(propety) == "object") {
-    //   let styleList2 = [];
-    //   for(let propety2 in propety) {
-    //     styleList2.push(propety2.toSnakeCase() + ":" + propety[propety2] + ";");
-    //   }
-    //   console.log(styleList2);
-    //   styleList.push("}" + propety + "{" + styleList2.join(""));
-    // } else {
-      styleList.push(propety.toSnakeCase() + ":" + styles[propety] + ";");
-    // }
+    styleList.push("    " + propety.toSnakeCase() + ": " + styles[propety] + ";");
   }
-  return styleList.join("");
-}
-function createUUID() { // https://mebee.info/2022/07/19/post-61487/
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, a => {
-    let r = (new Date().getTime() + Math.random() * 16) % 16 | 0;
-    let v = a == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
-Element.prototype.setUUID = function() {
-  this.uuid = createUUID();
-  return this;
-}
-Element.prototype.isUUIDExists = function() {
-  let hex = "[0-9a-f]";
-  return !!this.uuid && !!this.uuid.match(new RegExp(`${hex}{8}-${hex}{4}-4${hex}{3}-[89ab]${hex}{3}-${hex}{12}`));
-}
-Element.prototype.getUUID = function() {
-  return this.uuid;
+  return styleList.join("\n");
 }
 Element.prototype.setText = function(text) {
   this.textContent = text;
@@ -205,43 +186,16 @@ _$.setCookie = function(name, value, attributes) {
 _$.removeCookie = function(name) {
   _$.setCookie(name, null, "max-age=0;");
 }
-Element.prototype.addStyle = function(styles) {
+function addStyle(styles) {
   let classesList = [];
   for(let name in styles) {
-    classesList.push(name + "{" + ObjectStyleToString(styles[name]) + "}");
+    classesList.push(name + " {\n" + ObjectStyleToString(styles[name]) + "\n}\n");
   }
-  _$.if(_$.getById("fd_styles"), _$.getById("fd_styles"), _$("div").setID("fd_styles"))
-  .append(
-    _$("style")
-    .setText(classesList.join(""))
-  )
-  return this;
-}
-function addStyle(styles) {
-  document.body.addStyle(styles);
-}
-Element.prototype.setStyle = function(styles, defineOnStyle) {
-  if(type(styles) != "object") throw Error();
-  if(defineOnStyle) {
-    this.setPseudoStyle("", styles);
-  } else {
-    for(let propety in styles) {
-      this.style[propety.toCamelCase()] = styles[propety];
-    }
-  }
-  return this;
-}
-Element.prototype.setPseudoStyle = function(pseudo, styles) {
-  if(type(styles) != "object") throw Error();
-  if(!this.isUUIDExists()) {
-    this.setUUID();
-  }
-  this.setAttribute("data-identify", this.getUUID());
   if(_$.getById("fd_styles")) {
     _$.getById("fd_styles")
     .append(
       _$("style")
-      .setText(`*[data-identify="${this.getUUID()}"]${pseudo}{${ObjectStyleToString(styles)}}`)
+      .setText(classesList.join(""))
     );
   } else {
     document.body.append(
@@ -249,18 +203,10 @@ Element.prototype.setPseudoStyle = function(pseudo, styles) {
       .setID("fd_styles")
       .append(
         _$("style")
-        .setText(`*[data-identify="${this.getUUID()}"]${pseudo}{${ObjectStyleToString(styles)}}`)
+        .setText(classesList.join(""))
       )
     );
   }
-  return this;
-}
-Element.prototype.setHoverStyle = function(styles) {
-  this.setPseudoStyle(":hover", styles);
-  return this;
-}
-Element.prototype.setActiveStyle = function(styles) {
-  this.setPseudoStyle(":active", styles);
   return this;
 }
 Element.prototype.addListener = function(type, listener, options) {
@@ -529,7 +475,7 @@ function reloadFriendsList(query) {
             .setText(value.name)
           ),
           _$("div")
-          .addClass(value.add ? "fd_add" : null)
+          .addClass("fd_hover_active", value.add ? "fd_add" : null)
           .setAttribute("data-list-item-json", JSON.stringify({
             icon: value.icon,
             name: value.name,
@@ -539,18 +485,18 @@ function reloadFriendsList(query) {
             user_toggle(e.currentTarget);
           })
           .setAttribute("title", !value.add ? "Add to list" : "Remove from list")
-          .append(
-            _$("span")
-            .setText(!value.add ? "+" : "-")
-          )
         )
       })
     );
     if(!(_$.getById("fd_screen_add_list").scrollTop + _$.getById("fd_screen_add_list").clientHeight >= _$.getById("fd_screen_add_list").scrollHeight - 5)) {
       _$.getById("fd_screen_add_list_bottom").style.display = "block";
+    } else {
+      _$.getById("fd_screen_add_list_bottom").style.display = "none";
     }
     if(_$.getById("fd_screen_add_list").scrollTop != 0) {
       _$.getById("fd_screen_add_list_top").style.display = "block";
+    } else {
+      _$.getById("fd_screen_add_list_top").style.display = "none";
     }
     _$.getById("fd_screen_add_count_of_hits").setText(users_list.length + " hits");
     if(!users_list.length) {
@@ -567,8 +513,8 @@ function reloadFriendsList(query) {
     }
   }
   if(add_users.length) {
-    _$.getById("add_users").setHTML();
-    _$.getById("add_users").append(
+    _$.getById("fd_screen_add_users").setHTML();
+    _$.getById("fd_screen_add_users").append(
       ...add_users.map(value => {
         let status = findUserFromId(value.id);
         return _$("div")
@@ -617,7 +563,17 @@ function reloadFriendsList(query) {
       })
     );
   } else {
-    _$.getById("add_users").setText("Click \"edit\" to add users!")
+    _$.getById("fd_screen_add_users").setText("Click \"edit\" to add users!")
+  }
+  if(!(_$.getById("fd_screen_add_users").scrollTop + _$.getById("fd_screen_add_users").clientHeight >= _$.getById("fd_screen_add_users").scrollHeight - 5)) {
+    _$.getById("fd_screen_list_bottom").style.display = "block";
+  } else {
+    _$.getById("fd_screen_list_bottom").style.display = "none";
+  }
+  if(_$.getById("fd_screen_add_users").scrollTop != 0) {
+    _$.getById("fd_screen_list_top").style.display = "block";
+  } else {
+    _$.getById("fd_screen_list_top").style.display = "none";
   }
 }
 function user_toggle(e) {
@@ -672,252 +628,117 @@ function nav_change(type) {
     
     reloadFriendsList();
   }
+  _$.getById("fd_screen_add_search").focus();
 }
 
 function body_append() {
   if(!_$.getById("fd_screen")) {
     document.body.append(
       _$("div")
-      .setStyle({
-        position: "fixed",
-        left: "-215px",
-        top: "25vh",
-        backgroundColor: "white",
-        color: "black",
-        width: "215px",
-        height: "60vh",
-        padding: "10px 0px 10px 5px",
-        transition: "0.25s",
-        zIndex: "102",
-        userSelect: "none",
-      }, true)
       .setID("fd_screen")
-      .addStyle({
-        ".fd_screen_show": {
-          left: "0",
-        }
-      })
-      .append(
-        _$("div")
-        .setStyle({
-          marginBottom: "10px",
-          height: "26px",
-          border: "3px solid black",
-          borderRadius: "7px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "0.25s",
-          cursor: "pointer",
-          marginRight: "25px",
-        }, true)
-        .addClass("fd_screen_button")
-        .setHoverStyle({
-          backgroundColor: "#e7e7e7",
-        })
-        .setActiveStyle({
-          backgroundColor: "#d1d1d1",
-        })
-        .addListener("click", e => {
-          _$.getById("fd_screen_add").addClass("fd_screen_add_show");
-          nav_change("friends");
-        })
-        .append(
-          _$("span")
-          .setText("edit")
-          .setStyle({
-            height: "fit-content",
-            fontSize: "15px",
-            position: "relative",
-            top: "-1px",
-          })
-        ),
-        _$("div")
-        .setID("add_users")
-        .setStyle({
-          height: "calc(60vh - 55px)",
-          overflowY: "scroll",
-        })
-      ),
-      _$("div")
+      .addClass("fd_screen", getLocal("fd_position") == "right" ? "fd_screen_right_side" : null)
       .do(e => {
-        e.event = true;
+        e.fd_event = true;
       })
-      .setStyle({
-        position: "fixed",
-        left: "0",
-        top: "50vh",
-        backgroundColor: "white",
-        color: "black",
-        width: "25px",
-        height: "60px",
-        borderRadius: "0 7px 7px 0",
-        display: "flex",
-        alignItems: "center",
-        cursor: "pointer",
-        transition: "0.25s",
-        zIndex: "500",
-        userSelect: "none",
-      }, true)
-      .setHoverStyle({
-        width: "35px",
-      })
-      .setID("fd_button")
-      .addStyle({
-        ".fd_button_show": {
-          left: "215px",
-        }
-      })
-      .addListener("click", e => {
-        _$.getById("fd_screen").toggleClass("fd_screen_show");
-        _$.getById("fd_button").toggleClass("fd_button_show");
-        _$.getById("fd_button").tagFilter("span")[0].setText(_$.getById("fd_button").tagFilter("span")[0].getText() == ">" ? "<" : ">");
-      })
-      .append(
-        _$("span")
-        .setStyle({
-          height: "fit-content",
-          position: "relative",
-          top: "-3px",
-          fontSize: "25px",
-          marginLeft: "auto",
-          marginRight: "7px",
-        })
-        .setText(">")
-      ),
-      _$("div")
-      .setStyle({
-        height: "100vh",
-        width: "100vw",
-        position: "fixed",
-        zIndex: "1000",
-        left: "0",
-        display: "none",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "black",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        userSelect: "none",
-      }, true)
-      .addStyle({
-        ".fd_screen_add_show": {
-          display: "flex",
-        }
-      })
-      .setID("fd_screen_add")
       .append(
         _$("div")
-        .setStyle({
-          width: "43vw",
-          height: "65vh",
-          backgroundColor: "white",
-          padding: "15px",
-        })
         .append(
           _$("div")
-          .setStyle({
-            display: "flex",
-            flexDirection: "row",
-            marginBottom: "15px",
-          })
+          .addClass("fd_screen_buttons")
           .append(
             _$("div")
-            .setText("Users List")
-            .setID("fd_screen_add_nav_users")
-            .addStyle({
-              ".fd_screen_add_nav_text": {
-                borderBottom: "grey 3px solid",
-                textAlign: "center",
-                transition: "0.25s",
-                cursor: "pointer",
-                paddingBottom: "2px",
-              },
-              ".fd_screen_add_nav_focus": {
-                fontWeight: "bold",
-                borderColor: "lightskyblue",
-                borderWidth: "4px",
-              }
+            .addClass("fd_screen_button_edit", "fd_hover_active")
+            .setAttribute("title", "Add/delete users")
+            .addListener("click", e => {
+              _$.getById("fd_screen_add").addClass("fd_screen_add_show");
+              nav_change("friends");
+            }),
+            _$("div")
+            .addClass("fd_screen_button_position", "fd_hover_active")
+            .setAttribute("title", "Move the position to " + (getLocal("fd_position") == "right" ? "left" : "right") + "-side.")
+            .addListener("click", e => {
+              setLocal("fd_position", (getLocal("fd_position") == "right" ? "left" : "right"));
+              e.currentTarget
+              .setAttribute("title", "Move the position to " + getLocal("fd_position") + "-side.")
+              _$.getById("fd_screen").toggleClass("fd_screen_right_side");
             })
+          ),
+          _$("div")
+          .setID("fd_screen_list_top")
+          .addClass("fd_screen_shadow", "fd_screen_shadow_top")
+          .append(
+            _$("div")
+          ),
+          _$("div")
+          .setID("fd_screen_add_users")
+          .addClass("fd_screen_add_users")
+          .addListener("scroll", e => {
+            if(e.currentTarget.scrollTop == 0) {
+              _$.getById("fd_screen_list_top").style.display = "none";
+            } else {
+              _$.getById("fd_screen_list_top").style.display = "block";
+            }
+            if(e.currentTarget.scrollTop + e.currentTarget.clientHeight >= e.currentTarget.scrollHeight - 5) {
+              _$.getById("fd_screen_list_bottom").style.display = "none";
+            } else {
+              _$.getById("fd_screen_list_bottom").style.display = "block";
+            }
+          }),
+          _$("div")
+          .setID("fd_screen_list_bottom")
+          .addClass("fd_screen_shadow", "fd_screen_shadow_bottom")
+          .append(
+            _$("div")
+          )
+        ),
+        _$("div")
+        .append(
+          _$("div")
+          .addClass("fd_screen_open_close_button")
+          .addListener("click", e => {
+            _$.getById("fd_screen").toggleClass("fd_screen_show");
+          })
+        )
+      ),
+      _$("div")
+      .setID("fd_screen_add")
+      .addClass("fd_screen_add")
+      .append(
+        _$("div")
+        .append(
+          _$("div")
+          .addClass("fd_screen_add_nav")
+          .append(
+            _$("div")
+            .setID("fd_screen_add_nav_users")
+            .addClass("fd_screen_add_nav_text", "fd_screen_add_nav_users")
             .addListener("click", e => {
               nav_change("users");
-            })
-            .addClass("fd_screen_add_nav_text")
-            .setStyle({
-              width: "80px",
-              margin: "0 15px 0 5px",
-            }, true)
-            .setHoverStyle({
-              width: "90px",
-              margin: "0 10px 0 0",
             }),
             _$("div")
             .setID("fd_screen_add_nav_friends")
-            .setText("Friends")
-            .addClass("fd_screen_add_nav_text", "fd_screen_add_nav_focus")
+            .addClass("fd_screen_add_nav_text", "fd_screen_add_nav_friends")
             .addListener("click", e => {
               nav_change("friends");
-            })
-            .setStyle({
-              width: "60px",
-              margin: "0 15px 0 5px",
-            }, true)
-            .setHoverStyle({
-              width: "70px",
-              margin: "0 10px 0 0",
             }),
             _$("div")
             .setID("fd_screen_add_nav_search")
-            .setText("Search user")
-            .addClass("fd_screen_add_nav_text")
+            .addClass("fd_screen_add_nav_text", "fd_screen_add_nav_search")
             .addListener("click", e => {
               nav_change("search");
-            })
-            .setStyle({
-              width: "100px",
-              margin: "0 5px",
-            }, true)
-            .setHoverStyle({
-              width: "110px",
-              margin: "0"
             }),
             _$("div")
-            .setStyle({
-              height: "27px",
-              width: "27px",
-              marginLeft: "auto",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "5px",
-              transition: "0.25s",
-              cursor: "pointer",
-            })
-            .setHoverStyle({
-              backgroundColor: "#e7e7e7",
-            })
-            .setActiveStyle({
-              backgroundColor: "#d1d1d1"
-            })
+            .addClass("fd_screen_add_close", "fd_hover_active")
             .addListener("click", e => {
               _$.getById("fd_screen_add").removeClass("fd_screen_add_show");
             })
             .append(
               _$("span")
               .setText("+")
-              .setStyle({
-                transform: "rotate(45deg)",
-                fontSize: "24px",
-                position: "relative",
-                top: "-1.5px",
-                left: "2px",
-              })
             )
           ),
           _$("div")
-          .setStyle({
-            marginBottom: "15px",
-            width: "fit-content",
-          })
+          .addClass("fd_screen_add_input")
           .append(
             _$("input")
             .setID("fd_screen_add_search")
@@ -953,7 +774,8 @@ function body_append() {
                 }
                 e.target.setAttribute("data-interval-id", setTimeout(() => {
                   if(e.target.value) {
-                    _$.getById("fd_screen_add_list").setText("Loading...");
+                    _$.getById("fd_screen_add_list")
+                    .setText("Loading...");
                     ajax({
                       url: "https://osu.ppy.sh/home/quick-search?query=" + encodeURIComponent(e.target.value),
                       success: e => {
@@ -976,52 +798,20 @@ function body_append() {
                   e.target.removeAttribute("data-interval-id");
                 }, 400));
               }
-            })
-            .setStyle({
-              width: "calc(43vw - 355px)",
-              minWidth: "182px",
-              height: "30px",
-              fontSize: "14px",
-              padding: "0 10px",
-              borderRadius: "5px",
             }),
             _$("span")
             .setID("fd_screen_add_count_of_hits")
-            .setStyle({
-              marginLeft: "15px",
-            })
             .setText("? hits")
           ),
           _$("div")
           .setID("fd_screen_add_list_top")
-          .setStyle({
-            display: "none",
-            height: "0",
-            position: "relative",
-          })
+          .addClass("fd_screen_shadow", "fd_screen_add_shadow", "fd_screen_shadow_top")
           .append(
             _$("div")
-            .setStyle({
-              height: "25px",
-              background: "linear-gradient(rgba(0, 0, 0, 0.05), #00000000)",
-              width: "calc(43vw - 42px)",
-              pointerEvents: "none",
-            })
           ),
           _$("div")
           .setID("fd_screen_add_list")
-          .setStyle({
-            overflowY: "auto",
-            height: "calc(65vh - 120px)",
-            width: "calc(43vw - 25px)",
-            paddingRight: "15px",
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            alignContent: "flex-start",
-            overflowY: "scroll",
-          })
+          .addClass("fd_screen_add_list")
           .addListener("scroll", e => {
             if(e.currentTarget.scrollTop == 0) {
               _$.getById("fd_screen_add_list_top").style.display = "none";
@@ -1033,118 +823,362 @@ function body_append() {
             } else {
               _$.getById("fd_screen_add_list_bottom").style.display = "block";
             }
-          })
-          .addStyle({
-            // "@media screen (max-width:1480px)": {
-            //   "#fd_screen_add_list": {
-            //     flexDirection: "row !important",
-            //     flexWrap: "wrap",
-            //   }
-            // },
-            ".fd_list_item": {
-              marginBottom: "7px",
-              display: "flex",
-              alignItems: "center",
-              flexDirection: "row",
-              height: "35px",
-            },
-            ".fd_list_item > img": {
-              width: "35px",
-              height: "35px",
-              marginRight: "10px",
-            },
-            ".fd_screen_add_list_item > a": {
-              display: "flex",
-              alignItems: "center",
-              width: "200px",
-              height: "100%",
-              marginRight: "5px",
-            },
-            ".fd_screen_add_list_item > div": {
-              border: "solid 2px grey",
-              height: "30px",
-              width: "30px",
-              borderRadius: "5px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "0.25s",
-            },
-            ".fd_screen_add_list_item > div:hover": {
-              backgroundColor: "#e7e7e7",
-            },
-            ".fd_screen_add_list_item > div:active": {
-              backgroundColor: "#d1d1d1",
-            },
-            ".fd_screen_add_list_item > div > span": {
-              position: "relative",
-              top: "-2px",
-              fontSize: "20px",
-            },
-            ".fd_screen_add_list_item > div.fd_add": {
-              borderColor: "red",
-            },
-            ".fd_screen_list_item > a": {
-              display: "flex",
-              alignItems: "center",
-              height: "100%",
-              width: "110px",
-            },
-            ".fd_screen_list_item > a > span, .fd_screen_add_list_item > a > span": {
-              whiteSpace: "nowrap",
-              textOverflow: "ellipsis",
-              overflowX: "hidden",
-            },
-            ".fd_screen_list_item > div": {
-              width: "25px",
-              height: "25px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginLeft: "auto",
-            },
-            ".fd_screen_list_item > div > div" : {
-              width: "10px",
-              height: "10px",
-              borderRadius: "9999px",
-              backgroundColor: "black",
-            },
-            ".fd_status_online": {
-              backgroundColor: "lime !important",
-            },
-            ".fd_status_offline": {
-              backgroundColor: "red !important",
-            },
-            ".fd_status_hidden": {
-              backgroundColor: "orange !important",
-            }
           }),
           _$("div")
           .setID("fd_screen_add_list_bottom")
-          .setStyle({
-            display: "none",
-            height: "0",
-            position: "relative",
-          })
+          .addClass("fd_screen_shadow", "fd_screen_add_shadow", "fd_screen_shadow_bottom")
           .append(
             _$("div")
-            .setStyle({
-              height: "25px",
-              background: "linear-gradient(#00000000, rgba(0, 0, 0, 0.05))",
-              width: "calc(43vw - 42px)",
-              pointerEvents: "none",
-              position: "relative",
-              top: "-25px",
-            })
           )
         )
       )
     )
+    addStyle({
+      ".fd_hover_active": {
+        transition: "0.25s",
+        cursor: "pointer",
+      },
+      ".fd_hover_active:hover": {
+        backgroundColor: "#e7e7e7 !important",
+      },
+      ".fd_hover_active:active": {
+        backgroundColor: "#d1d1d1 !important",
+      },
+      // ---- //
+      ".fd_screen": {
+        position: "fixed",
+        left: "-215px",
+        top: "25vh",
+        backgroundColor: "white",
+        color: "black",
+        width: "215px",
+        height: "60vh",
+        padding: "10px 0px 10px 5px",
+        transition: "0.25s",
+        zIndex: "102",
+        userSelect: "none",
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+      },
+      ".fd_screen.fd_screen_right_side": {
+        flexDirection: "row-reverse !important",
+        left: "initial",
+        right: "-215px",
+        padding: "10px 5px 10px 0px",
+      },
+      ".fd_screen_buttons": {
+        display: "flex",
+      },
+      ".fd_screen_right_side .fd_screen_buttons" : {
+        flexDirection: "row-reverse",
+      },
+      ".fd_screen_button_edit": {
+        margin: "0 5px 10px 0",
+        width: "155px",
+        height: "26px",
+        border: "3px solid black",
+        borderRadius: "7px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingBottom: "1px",
+      },
+      ".fd_screen_button_edit:before": {
+        content: "\"edit\"",
+      },
+      ".fd_screen_button_position": {
+        height: "26px",
+        width: "26px",
+        border: "solid 3px black",
+        borderRadius: "5px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "15px",
+        padding: "0 0 2px 1px",
+      },
+      ".fd_screen_right_side .fd_screen_button_position": {
+        padding: "0 0 1px 0",
+      },
+      ".fd_screen_button_position:before": {
+        content: "\">\"",
+      },
+      ".fd_screen_right_side .fd_screen_button_position:before": {
+        content: "\"<\"",
+      },
+      ".fd_screen_add_users": {
+        width: "210px",
+        height: "calc(60vh - 55px)",
+        overflowY: "scroll",
+      },
+      ".fd_screen.fd_screen_right_side > .fd_screen_buttons": {
+        flexDirection: "row-reverse",
+      },
+      ".fd_screen.fd_screen_right_side .fd_screen_buttons > .fd_screen_button_edit": {
+        marginRight: "0px",
+        marginLeft: "5px",
+      },
+      ".fd_screen.fd_screen_right_side .fd_screen_add_users": {
+        direction: "rtl",
+        paddingLeft: "5px",
+      },
+      ".fd_screen.fd_screen_right_side .fd_screen_add_users > .fd_screen_list_item": {
+        direction: "ltr",
+      },
+      ".fd_screen_show": {
+        left: "0",
+      },
+      ".fd_screen_show.fd_screen_right_side": {
+        right: "0 !important",
+      },
+      ".fd_screen_open_close_button": {
+        backgroundColor: "white",
+        color: "black",
+        width: "25px",
+        height: "60px",
+        fontSize: "25px",
+        padding: "0 7px 4px 7px",
+        borderRadius: "0 7px 7px 0",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        cursor: "pointer",
+        transition: "0.25s",
+      },
+      ".fd_screen_open_close_button:before, .fd_screen_show.fd_screen_right_side .fd_screen_open_close_button:before": {
+        content: "\">\"",
+      },
+      ".fd_screen_show .fd_screen_open_close_button:before, .fd_screen_right_side .fd_screen_open_close_button:before": {
+        content: "\"<\"",
+      },
+      ".fd_screen_right_side .fd_screen_open_close_button": {
+        borderRadius: "7px 0 0 7px !important",
+        justifyContent: "flex-start",
+      },
+      ".fd_screen_open_close_button:hover": {
+        width: "35px",
+      },
+      // ---- //
+      ".fd_screen_add": {
+        height: "100vh",
+        width: "100vw",
+        position: "fixed",
+        zIndex: "1000",
+        left: "0",
+        display: "none",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "black",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        userSelect: "none",
+      },
+      ".fd_screen_add_show": {
+        display: "flex",
+      },
+      ".fd_screen_add > div": {
+        width: "43vw",
+        height: "65vh",
+        backgroundColor: "white",
+        padding: "15px",
+      },
+      ".fd_screen_add_nav": {
+        display: "flex",
+        flexDirection: "row",
+        marginBottom: "15px",
+      },
+      ".fd_screen_add_nav_text": {
+        borderBottom: "grey 3px solid",
+        textAlign: "center",
+        transition: "0.25s",
+        cursor: "pointer",
+        paddingBottom: "2px",
+      },
+      ".fd_screen_add_nav_focus": {
+        fontWeight: "bold",
+        borderColor: "lightskyblue",
+        borderWidth: "4px",
+      },
+      ".fd_screen_add_nav_users": {
+        width: "80px",
+        margin: "0 15px 0 5px",
+      },
+      ".fd_screen_add_nav_users:before": {
+        content: "\"Users List\"",
+      },
+      ".fd_screen_add_nav_users:hover": {
+        width: "90px",
+        margin: "0 10px 0 0",
+      },
+      ".fd_screen_add_nav_friends": {
+        width: "60px",
+        margin: "0 15px 0 5px",
+      },
+      ".fd_screen_add_nav_friends:before": {
+        content: "\"Friends\"",
+      },
+      ".fd_screen_add_nav_friends:hover": {
+        width: "70px",
+        margin: "0 10px 0 0",
+      },
+      ".fd_screen_add_nav_search": {
+        width: "100px",
+        margin: "0 5px",
+      },
+      ".fd_screen_add_nav_search:before": {
+        content: "\"Search user\"",
+      },
+      ".fd_screen_add_nav_search:hover": {
+        width: "110px",
+        margin: "0",
+      },
+      ".fd_screen_add_close": {
+        height: "27px",
+        width: "27px",
+        marginLeft: "auto",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "5px",
+        transition: "0.25s",
+        cursor: "pointer",
+      },
+      ".fd_screen_add_close > span": {
+        transform: "rotate(45deg)",
+        fontSize: "24px",
+        position: "relative",
+        top: "-1.5px",
+        left: "2px",
+      },
+      ".fd_screen_add_input": {
+        marginBottom: "15px",
+        width: "fit-content",
+      },
+      ".fd_screen_add_input > input": {
+        width: "calc(43vw - 355px)",
+        minWidth: "182px",
+        height: "30px",
+        fontSize: "14px",
+        padding: "0 10px",
+        borderRadius: "5px",
+      },
+      ".fd_screen_add_input > span": {
+        marginLeft: "15px",
+      },
+      ".fd_screen_add_list": {
+        overflowY: "auto",
+        height: "calc(65vh - 120px)",
+        width: "calc(43vw - 25px)",
+        paddingRight: "15px",
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        alignContent: "flex-start",
+        overflowY: "scroll",
+      },
+      ".fd_screen_shadow": {
+        display: "none",
+        height: "0",
+        position: "relative",
+      },
+      ".fd_screen_shadow > div": {
+        height: "25px",
+        width: "calc(100% - 17px)",
+        pointerEvents: "none",
+        position: "relative",
+      },
+      ".fd_screen_right_side .fd_screen_shadow": {
+        left: "16px",
+      },
+      ".fd_screen_add_shadow > div": {
+        width: "calc(43vw - 42px)",
+      },
+      ".fd_screen_shadow_top > div": {
+        background: "linear-gradient(rgba(0, 0, 0, 0.05), #00000000)",
+      },
+      ".fd_screen_shadow_bottom > div": {
+        background: "linear-gradient(#00000000, rgba(0, 0, 0, 0.05))",
+        top: "-25px",
+      },
+      // ---- //
+      ".fd_list_item": {
+        marginBottom: "7px",
+        display: "flex",
+        alignItems: "center",
+        flexDirection: "row",
+        height: "35px",
+      },
+      ".fd_list_item > img": {
+        width: "35px",
+        height: "35px",
+        marginRight: "10px",
+      },
+      ".fd_screen_add_list_item > a": {
+        display: "flex",
+        alignItems: "center",
+        width: "200px",
+        height: "100%",
+        marginRight: "5px",
+      },
+      ".fd_screen_add_list_item > div": {
+        border: "solid 2px grey",
+        height: "30px",
+        width: "30px",
+        borderRadius: "5px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "20px",
+        paddingBottom: "3px",
+      },
+      ".fd_screen_add_list_item > div.fd_add": {
+        borderColor: "red",
+      },
+      ".fd_screen_add_list_item > div:before": {
+        content: "\"+\"",
+      },
+      ".fd_screen_add_list_item > div.fd_add:before": {
+        content: "\"-\"",
+      },
+      ".fd_screen_list_item > a": {
+        display: "flex",
+        alignItems: "center",
+        height: "100%",
+        width: "110px",
+      },
+      ".fd_screen_list_item > a > span, .fd_screen_add_list_item > a > span": {
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis",
+        overflowX: "hidden",
+      },
+      ".fd_screen_list_item > div": {
+        width: "25px",
+        height: "25px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        marginLeft: "auto",
+      },
+      ".fd_screen_list_item > div > div" : {
+        width: "10px",
+        height: "10px",
+        borderRadius: "9999px",
+        backgroundColor: "black",
+      },
+      ".fd_status_online": {
+        backgroundColor: "lime !important",
+      },
+      ".fd_status_offline": {
+        backgroundColor: "red !important",
+      },
+      ".fd_status_hidden": {
+        backgroundColor: "orange !important",
+      }
+    });
     reloadFriendsList();
   } else {
-    if(!_$.getById("fd_button").event) {
-      _$.getById("fd_button").remove();
+    if(!_$.getById("fd_screen").fd_event) {
       _$.getById("fd_screen").remove();
       _$.getById("fd_screen_add").remove();
       body_append();

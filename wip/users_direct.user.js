@@ -3,7 +3,7 @@
 // @namespace       https://osu.ppy.sh/users/22136262
 // @downloadURL     https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/wip/users_direct.user.js
 // @updateURL       https://raw.githubusercontent.com/yuzupon1133/osu-tools/main/wip/users_direct.user.js
-// @version         0.7
+// @version         0.8
 // @description:ja  どのページからでも瞬時にユーザーページに移動
 // @description     Quickly jump to a user page from any page
 // @author          yuzupon1133
@@ -790,7 +790,7 @@ function nav_change(type) {
   
   _$.getById("fd_screen_add_search").focus();
 }
-const sorryMessage = "In this update, added more setting options, sorting, filtering, etc., but these features don't work yet because <a href=''>I'm verrrrry tired</a> after 15 days of effort on this feature.<br>But I promise I'll implement it in the next update, so stay tuned!";
+const sorryMessage = "In this update, added more setting options, sorting, filtering, etc., but these features don't work yet because <a href='https://github.com/yuzupon1133/osu-tools/commit/23a8eb05099ddf240d05f85b458838f57de3327b' target='_blank'>I'm verrrrry tired</a> after 15 days of effort on this feature.<br>But I promise I'll implement it in the next update, so stay tuned!";
 function body_append() {
   if(!_$.getById("fd_screen")) {
     document.body.append(

@@ -1,3 +1,5 @@
+// $を上書きしてしまうため削除します
+/*
 function type(a) {
   if(a === null) return "null";
   if(["undefined", "boolean", "number", "bigint", "string", "symbol", "function"].includes(typeof a)) return typeof a;
@@ -120,3 +122,4 @@ header.append(
     }).append(bookmark_nothover, bookmark_hover)
   )
 )
+*/
